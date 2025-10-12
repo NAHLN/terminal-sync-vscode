@@ -1,0 +1,55 @@
+{
+  "name": "terminal-observer",
+  "displayName": "Terminal Observer",
+  "description": "Observe and log terminal input and output in VS Code",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "terminal-observer.toggle",
+        "title": "Terminal Observer: Show Output"
+      },
+      {
+        "command": "terminal-observer.createTerminal",
+        "title": "Terminal Observer: Create Observed Terminal"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "terminal-observer.toggle"
+        },
+        {
+          "command": "terminal-observer.createTerminal"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.40.0",
+    "typescript": "^5.0.0"
+  }
+}
