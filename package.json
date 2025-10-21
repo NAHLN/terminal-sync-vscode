@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onCommand:terminal-observer.toggle",
+    "onCommand:terminal-observer.createTerminal"
   ],
   "main": "./out/extension.js",
   "contributes": {

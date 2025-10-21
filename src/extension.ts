@@ -61,15 +61,33 @@ function createObservablePty(): vscode.Pseudoterminal {
             logToOutput('🚀 Observed terminal opened');
             
             // Determine shell based on OS
-            const shell = os.platform() === 'win32' 
+            const isWindows = os.platform() === 'win32';
+            const shell = isWindows
                 ? process.env.COMSPEC || 'cmd.exe'
                 : process.env.SHELL || '/bin/bash';
             
-            // Spawn shell process
+            logToOutput(`🐚 Using shell: ${shell}`);
+            
+            // Get workspace folder or default to home directory
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            const cwd = workspaceFolder || os.homedir();
+            
+            logToOutput(`📁 Working directory: ${cwd}`);
+            
+            // Spawn shell process with proper options
             shellProcess = child_process.spawn(shell, [], {
-                env: process.env,
-                cwd: process.cwd()
+                env: { ...process.env },
+                cwd: cwd,
+                stdio: ['pipe', 'pipe', 'pipe']
             });
+
+            if (!shellProcess.stdout || !shellProcess.stderr || !shellProcess.stdin) {
+                logToOutput('❌ Failed to create shell streams');
+                writeEmitter.fire('Error: Could not create shell process\r\n');
+                return;
+            }
+
+            logToOutput('✅ Shell process created successfully');
 
             // Capture stdout
             shellProcess.stdout?.on('data', (data: Buffer) => {
@@ -87,7 +105,11 @@ function createObservablePty(): vscode.Pseudoterminal {
 
             shellProcess.on('exit', (code) => {
                 logToOutput(`💀 Shell process exited with code: ${code}`);
-                writeEmitter.fire(`\r\nProcess exited with code ${code}\r\n`);
+            });
+
+            shellProcess.on('error', (err) => {
+                logToOutput(`❌ Shell process error: ${err.message}`);
+                writeEmitter.fire(`\r\nError starting shell: ${err.message}\r\n`);
             });
 
             writeEmitter.fire('🔍 Terminal Observer Active - All I/O is being logged\r\n\r\n');
