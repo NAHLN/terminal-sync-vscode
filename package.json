@@ -1,7 +1,9 @@
 {
-  "name": "terminal-observer",
-  "displayName": "Terminal Observer",
-  "description": "Observe and log terminal input and output in VS Code",
+  "_comment_artifact": "terminal-sync-package",
+  "_comment_version": "1.0.1",
+  "name": "terminal-file-explorer",
+  "displayName": "Terminal-Synced File Explorer",
+  "description": "File browser that syncs with terminal cd commands via SSH/SFTP",
   "version": "1.0.0",
   "publisher": "your-publisher-name",
   "engines": {
@@ -10,29 +12,58 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-    "onCommand:terminal-observer.toggle",
-    "onCommand:terminal-observer.createTerminal"
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "terminal-file-explorer",
+          "title": "Remote Files",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "terminal-file-explorer": [
+        {
+          "id": "terminalFileExplorer",
+          "name": "Remote File Browser"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "terminal-observer.toggle",
-        "title": "Terminal Observer: Show Output"
+        "command": "terminal-file-explorer.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
       },
       {
-        "command": "terminal-observer.createTerminal",
-        "title": "Terminal Observer: Create Observed Terminal"
+        "command": "terminal-file-explorer.connect",
+        "title": "Terminal Explorer: Connect to SSH Host",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "terminal-file-explorer.createWatchedTerminal",
+        "title": "Terminal Explorer: Create Watched Terminal",
+        "icon": "$(terminal)"
+      },
+      {
+        "command": "terminal-file-explorer.changeDirectory",
+        "title": "Change to this directory"
       }
     ],
     "menus": {
-      "commandPalette": [
+      "view/title": [
         {
-          "command": "terminal-observer.toggle"
+          "command": "terminal-file-explorer.refresh",
+          "when": "view == terminalFileExplorer",
+          "group": "navigation"
         },
         {
-          "command": "terminal-observer.createTerminal"
+          "command": "terminal-file-explorer.connect",
+          "when": "view == terminalFileExplorer",
+          "group": "navigation"
         }
       ]
     }
@@ -42,15 +73,18 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+    "lint": "eslint src --ext ts"
   },
   "devDependencies": {
     "@types/vscode": "^1.80.0",
     "@types/node": "^20.0.0",
+    "@types/ssh2": "^1.11.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.40.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "ssh2-sftp-client": "^10.0.3"
   }
 }

@@ -1,4 +1,6 @@
 {
+  "_comment_artifact": "vscode-ext-tsconfig",
+  "_comment_version": "1.0.1",
   "compilerOptions": {
     "module": "commonjs",
     "target": "ES2020",
