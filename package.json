@@ -46,11 +46,6 @@
         "icon": "$(plug)"
       },
       {
-        "command": "terminal-file-explorer.createWatchedTerminal",
-        "title": "Terminal Explorer: Create Watched Terminal",
-        "icon": "$(terminal)"
-      },
-      {
         "command": "terminal-file-explorer.changeDirectory",
         "title": "Change to this directory"
       }
