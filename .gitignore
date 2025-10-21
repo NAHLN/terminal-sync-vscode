@@ -1,2 +1,24 @@
+# Compiled output
+out/
+dist/
+*.vsix
+
 node_modules/
 *.swp
+
+# IDE
+.vscode-test/
+.vscode/launch.json
+.vscode/tasks.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
