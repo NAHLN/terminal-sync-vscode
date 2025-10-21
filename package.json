@@ -78,15 +78,16 @@
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
-    "@types/vscode": "^1.80.0",
     "@types/node": "^20.0.0",
     "@types/ssh2": "^1.11.0",
+    "@types/vscode": "^1.80.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.40.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "node-pty": "^1.0.0",
     "ssh2-sftp-client": "^10.0.3"
   }
 }

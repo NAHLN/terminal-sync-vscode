@@ -1,15 +1,15 @@
 // src/extension.ts
 // Artifact: terminal-sync-full
-// Version: 1.0.1
+// Version: 1.0.2
 // Main extension file for Terminal-Synced File Browser
+// Uses shell integration to watch normal terminals
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { TerminalOutputParser, TerminalPtyWrapper } from './terminalParser';
 
 let outputChannel: vscode.OutputChannel;
 let remoteExplorer: RemoteFileExplorer;
-let terminalWrapper: TerminalPtyWrapper;
+let currentWorkingDirectory: string = '';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Terminal-Synced File Browser activated');
@@ -23,24 +23,22 @@ export function activate(context: vscode.ExtensionContext) {
         showCollapseAll: true
     });
 
-    // Create terminal wrapper with parser
-    terminalWrapper = new TerminalPtyWrapper(
-        outputChannel,
-        (newDir: string) => {
-            // Callback when directory changes
-            remoteExplorer.updateCurrentPath(newDir);
-        }
-    );
+    // Watch shell execution events (VS Code 1.72+)
+    context.subscriptions.push(
+        vscode.window.onDidEndTerminalShellExecution(async (e) => {
+            const command = e.execution.commandLine.value.trim();
+            outputChannel.appendLine(`🔍 Command executed: ${command}`);
 
-    // Create watched terminal command
-    let createWatchedTerminal = vscode.commands.registerCommand(
-        'terminal-file-explorer.createWatchedTerminal', 
-        () => {
-            const terminal = terminalWrapper.createWrappedTerminal('Watched Terminal');
-            terminal.show();
-            outputChannel.appendLine('✨ Created watched terminal');
-            vscode.window.showInformationMessage('Watched terminal created - directory changes will be tracked');
-        }
+            // Detect cd commands
+            if (isCdCommand(command)) {
+                const targetDir = extractCdTarget(command);
+                if (targetDir) {
+                    outputChannel.appendLine(`📁 CD detected: ${targetDir}`);
+                    currentWorkingDirectory = targetDir;
+                    remoteExplorer.updateCurrentPath(targetDir);
+                }
+            }
+        })
     );
 
     // Refresh command
@@ -79,14 +77,63 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // Get current directory command
+    let getCurrentDir = vscode.commands.registerCommand('terminal-file-explorer.getCurrentDirectory', async () => {
+        const terminal = vscode.window.activeTerminal;
+        if (terminal) {
+            terminal.sendText('pwd');
+            vscode.window.showInformationMessage('Check the terminal for current directory');
+        }
+    });
+
     context.subscriptions.push(
         outputChannel,
         treeView,
-        createWatchedTerminal,
         refreshCommand,
         connectCommand,
-        cdCommand
+        cdCommand,
+        getCurrentDir
     );
+
+    // Show helpful message
+    outputChannel.appendLine('✅ Terminal File Sync activated');
+    outputChannel.appendLine('💡 Tip: This extension watches cd commands in your terminals');
+    outputChannel.appendLine('💡 Make sure shell integration is enabled in VS Code settings');
+}
+
+function isCdCommand(command: string): boolean {
+    const cdPatterns = [
+        /^cd\s+/,
+        /^pushd\s+/,
+        /&&\s*cd\s+/,
+        /;\s*cd\s+/
+    ];
+    return cdPatterns.some(pattern => pattern.test(command));
+}
+
+function extractCdTarget(command: string): string | null {
+    const cdMatch = command.match(/(?:^|&&|;)\s*(?:cd|pushd)\s+(.+?)(?:\s*&&|\s*;|$)/);
+    if (!cdMatch) return null;
+
+    let target = cdMatch[1].trim();
+    target = target.replace(/^["']|["']$/g, '');
+    
+    if (target === '-') return null;
+    
+    // Expand ~ if needed
+    if (target === '~' || target.startsWith('~/')) {
+        const homeDir = process.env.HOME || process.env.USERPROFILE;
+        if (homeDir) {
+            target = target.replace(/^~/, homeDir);
+        }
+    }
+
+    // Handle relative paths
+    if (!path.isAbsolute(target) && currentWorkingDirectory) {
+        target = path.resolve(currentWorkingDirectory, target);
+    }
+
+    return target;
 }
 
 class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {

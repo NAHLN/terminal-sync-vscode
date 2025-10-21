@@ -1,7 +1,8 @@
 // src/terminalParser.ts
 // Artifact: terminal-parser
-// Version: 1.0.0
+// Version: 1.0.2
 // Terminal output parser for detecting cd commands and tracking current directory
+// Cross-platform implementation without native dependencies
 
 import * as vscode from 'vscode';
 
@@ -265,31 +266,68 @@ export class TerminalPtyWrapper {
      */
     createWrappedTerminal(name: string = 'Watched Terminal'): vscode.Terminal {
         const writeEmitter = new vscode.EventEmitter<string>();
-        let shellProcess: any = null;
+        let ptyProcess: any = null;
 
         const pty: vscode.Pseudoterminal = {
             onDidWrite: writeEmitter.event,
             
-            open: () => {
-                // Import child_process and spawn shell
+            open: (dimensions: vscode.TerminalDimensions | undefined) => {
+                this.outputChannel.appendLine('🚀 PTY open() called');
+                
                 const child_process = require('child_process');
                 const os = require('os');
                 
-                const shell = os.platform() === 'win32'
+                const isWindows = os.platform() === 'win32';
+                const shell = isWindows
                     ? process.env.COMSPEC || 'cmd.exe'
                     : process.env.SHELL || '/bin/bash';
                 
-                const args = os.platform() === 'win32' ? [] : ['-i'];
+                this.outputChannel.appendLine(`🐚 Using shell: ${shell}`);
+                this.outputChannel.appendLine(`💻 Platform: ${os.platform()}`);
                 
-                shellProcess = child_process.spawn(shell, args, {
-                    env: { ...process.env, TERM: 'xterm-256color' },
-                    cwd: process.cwd(),
-                    stdio: ['pipe', 'pipe', 'pipe']
-                });
+                const cwd = process.env.HOME || os.homedir();
+                this.outputChannel.appendLine(`📁 Working directory: ${cwd}`);
+                
+                try {
+                    if (isWindows) {
+                        // Windows: use cmd or powershell directly
+                        ptyProcess = child_process.spawn(shell, [], {
+                            cwd: cwd,
+                            env: process.env,
+                            stdio: ['pipe', 'pipe', 'pipe']
+                        });
+                    } else {
+                        // Unix: spawn with -i flag for interactive shell
+                        // This gives us better terminal behavior without needing 'script'
+                        ptyProcess = child_process.spawn(shell, ['-i'], {
+                            cwd: cwd,
+                            env: {
+                                ...process.env,
+                                TERM: 'xterm-256color',
+                                PS1: '\\u@\\h:\\w\\$ '  // Simple prompt
+                            },
+                            stdio: ['pipe', 'pipe', 'pipe']
+                        });
+                    }
+                    
+                    this.outputChannel.appendLine('✅ Process spawned');
+                } catch (error) {
+                    this.outputChannel.appendLine(`❌ Spawn error: ${error}`);
+                    writeEmitter.fire(`Error spawning shell: ${error}\r\n`);
+                    return;
+                }
 
-                // Capture and parse stdout
-                shellProcess.stdout?.on('data', (data: Buffer) => {
+                if (!ptyProcess || !ptyProcess.stdout || !ptyProcess.stdin) {
+                    this.outputChannel.appendLine('❌ Process or streams not created');
+                    return;
+                }
+                
+                this.outputChannel.appendLine('✅ Process created successfully');
+
+                // Capture stdout
+                ptyProcess.stdout.on('data', (data: Buffer) => {
                     const output = data.toString();
+                    this.outputChannel.appendLine(`📤 Output (${output.length} bytes)`);
                     
                     // Parse the output
                     const commands = this.parser.parseData(output);
@@ -307,21 +345,40 @@ export class TerminalPtyWrapper {
                     writeEmitter.fire(output);
                 });
 
-                shellProcess.stderr?.on('data', (data: Buffer) => {
-                    writeEmitter.fire(data.toString());
+                // Capture stderr
+                ptyProcess.stderr?.on('data', (data: Buffer) => {
+                    const output = data.toString();
+                    this.outputChannel.appendLine(`⚠️  Stderr (${output.length} bytes)`);
+                    writeEmitter.fire(output);
                 });
 
-                shellProcess.on('exit', (code: number) => {
+                // Handle exit
+                ptyProcess.on('exit', (code: number) => {
+                    this.outputChannel.appendLine(`💀 Process exited: ${code}`);
                     writeEmitter.fire(`\r\n[Process exited with code ${code}]\r\n`);
                 });
+
+                ptyProcess.on('error', (err: Error) => {
+                    this.outputChannel.appendLine(`❌ Process error: ${err.message}`);
+                    writeEmitter.fire(`\r\nError: ${err.message}\r\n`);
+                });
+                
+                this.outputChannel.appendLine('✅ Event listeners attached');
             },
             
             close: () => {
-                shellProcess?.kill();
+                this.outputChannel.appendLine('🛑 Terminal closed');
+                ptyProcess?.kill();
             },
             
             handleInput: (data: string) => {
-                shellProcess?.stdin?.write(data);
+                if (ptyProcess?.stdin) {
+                    ptyProcess.stdin.write(data);
+                }
+            },
+
+            setDimensions: (dimensions: vscode.TerminalDimensions) => {
+                // Can't dynamically resize with this approach
             }
         };
 
