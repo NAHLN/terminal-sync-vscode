@@ -43,20 +43,38 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.window.onDidEndTerminalShellExecution(async (e) => {
             const command = e.execution.commandLine.value.trim();
-            outputChannel.appendLine(`🔍 Command executed: ${command}`);
+            const exitCode = e.exitCode;
+            
+            outputChannel.appendLine(`🔍 Command: ${command} (exit: ${exitCode})`);
 
             // Detect cd commands
             if (isCdCommand(command)) {
-                const targetDir = extractCdTarget(command);
-                if (targetDir) {
-                    outputChannel.appendLine(`📁 CD detected: ${targetDir}`);
-                    currentWorkingDirectory = targetDir;
-                    remoteExplorer.updateCurrentPath(targetDir);
-                    updateStatusBar(targetDir);
+                if (exitCode === 0) {
+                    // CD succeeded - try to get actual directory
+                    const targetDir = extractCdTarget(command);
                     
-                    // Show notification for teaching (optional - can be disabled)
-                    vscode.window.setStatusBarMessage(`📂 Navigated to: ${path.basename(targetDir)}`, 3000);
+                    // Check if we could parse it and it exists
+                    if (targetDir && fs.existsSync(targetDir)) {
+                        outputChannel.appendLine(`✅ CD to: ${targetDir}`);
+                        currentWorkingDirectory = targetDir;
+                        remoteExplorer.updateCurrentPath(targetDir);
+                        updateStatusBar(targetDir);
+                        vscode.window.setStatusBarMessage(`📂 ${path.basename(targetDir)}`, 2000);
+                    } else {
+                        // Couldn't parse or doesn't exist - use terminal's cwd if available
+                        outputChannel.appendLine(`⚠️  Using terminal cwd for sync`);
+                        syncFromTerminal(e.terminal);
+                    }
+                } else {
+                    outputChannel.appendLine(`❌ CD failed - no change`);
+                    vscode.window.setStatusBarMessage(`❌ Directory not found`, 2000);
                 }
+            }
+            
+            // Detect pwd command to re-sync
+            if (isPwdCommand(command)) {
+                outputChannel.appendLine(`📍 PWD - syncing from terminal`);
+                syncFromTerminal(e.terminal);
             }
         })
     );
@@ -120,6 +138,38 @@ function updateStatusBar(directory: string) {
     const dirName = path.basename(directory);
     statusBarItem.text = `$(folder) ${dirName}`;
     statusBarItem.tooltip = `Current: ${directory}\nClick to reveal in tree`;
+}
+
+function syncFromTerminal(terminal: vscode.Terminal) {
+    // Try to get the terminal's current working directory
+    // This uses the shell integration's cwd tracking
+    const shellIntegration = (terminal as any).shellIntegration;
+    
+    if (shellIntegration?.cwd) {
+        const cwd = shellIntegration.cwd.fsPath || shellIntegration.cwd;
+        outputChannel.appendLine(`🔄 Synced from terminal cwd: ${cwd}`);
+        currentWorkingDirectory = cwd;
+        remoteExplorer.updateCurrentPath(cwd);
+        updateStatusBar(cwd);
+    } else {
+        outputChannel.appendLine(`⚠️  Shell integration cwd not available`);
+        // Fallback: just refresh current view
+        remoteExplorer.refresh();
+    }
+}
+
+function triggerPwdSync() {
+    // Automatically send pwd command to get current directory
+    const terminal = vscode.window.activeTerminal;
+    if (terminal) {
+        // Send pwd silently to resync
+        outputChannel.appendLine('🔄 Auto-syncing with pwd...');
+        terminal.sendText('pwd');
+    }
+}
+
+function isPwdCommand(command: string): boolean {
+    return /^\s*pwd\s*$/.test(command);
 }
 
 function isCdCommand(command: string): boolean {
@@ -250,9 +300,9 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
             // If this is the current directory, add a header
             if (dirPath === this.currentPath) {
                 items.unshift(new RemoteFileItem(
-                    `📍 Current Directory`,
+                    `📍 ${path.basename(dirPath) || path.sep}`,
                     dirPath,
-                    'info',
+                    'current-dir-header',
                     vscode.TreeItemCollapsibleState.None,
                     true
                 ));
@@ -276,7 +326,7 @@ class RemoteFileItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly fullPath: string,
-        public readonly type: 'file' | 'directory' | 'info',
+        public readonly type: 'file' | 'directory' | 'info' | 'current-dir-header',
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly isCurrent: boolean = false
     ) {
@@ -286,7 +336,14 @@ class RemoteFileItem extends vscode.TreeItem {
         this.contextValue = type;
 
         // Set icons and styling based on type
-        if (type === 'directory') {
+        if (type === 'current-dir-header') {
+            // Special styling for the current directory header
+            this.iconPath = new vscode.ThemeIcon(
+                'location',
+                new vscode.ThemeColor('terminal.ansiGreen')
+            );
+            // Removed "You are here" - just show the directory name
+        } else if (type === 'directory') {
             this.iconPath = new vscode.ThemeIcon(
                 isCurrent ? 'folder-opened' : 'folder',
                 isCurrent ? new vscode.ThemeColor('terminal.ansiGreen') : undefined
@@ -299,7 +356,7 @@ class RemoteFileItem extends vscode.TreeItem {
             
             // Highlight current directory
             if (isCurrent) {
-                this.description = '← You are here';
+                this.description = '← Current';
             }
         } else if (type === 'file') {
             this.iconPath = new vscode.ThemeIcon('file');
