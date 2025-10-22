@@ -1,20 +1,29 @@
 // src/extension.ts
 // Artifact: terminal-sync-full
-// Version: 1.0.2
+// Version: 1.0.3
 // Main extension file for Terminal-Synced File Browser
-// Uses shell integration to watch normal terminals
+// Enhanced for teaching: highlights and syncs current working directory
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 let outputChannel: vscode.OutputChannel;
 let remoteExplorer: RemoteFileExplorer;
 let currentWorkingDirectory: string = '';
+let statusBarItem: vscode.StatusBarItem;
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Terminal-Synced File Browser activated');
 
     outputChannel = vscode.window.createOutputChannel('Terminal File Sync');
+    
+    // Create status bar item to show current directory
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    statusBarItem.command = 'terminal-file-explorer.revealCurrentDirectory';
+    statusBarItem.text = '$(folder) ~';
+    statusBarItem.tooltip = 'Current working directory (click to reveal)';
+    statusBarItem.show();
     
     // Create the remote file explorer tree view
     remoteExplorer = new RemoteFileExplorer(outputChannel);
@@ -22,6 +31,13 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider: remoteExplorer,
         showCollapseAll: true
     });
+
+    // Initialize with workspace folder or home directory
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const initialDir = workspaceFolder || process.env.HOME || process.cwd();
+    currentWorkingDirectory = initialDir;
+    remoteExplorer.updateCurrentPath(initialDir);
+    updateStatusBar(initialDir);
 
     // Watch shell execution events (VS Code 1.72+)
     context.subscriptions.push(
@@ -36,6 +52,10 @@ export function activate(context: vscode.ExtensionContext) {
                     outputChannel.appendLine(`📁 CD detected: ${targetDir}`);
                     currentWorkingDirectory = targetDir;
                     remoteExplorer.updateCurrentPath(targetDir);
+                    updateStatusBar(targetDir);
+                    
+                    // Show notification for teaching (optional - can be disabled)
+                    vscode.window.setStatusBarMessage(`📂 Navigated to: ${path.basename(targetDir)}`, 3000);
                 }
             }
         })
@@ -44,36 +64,29 @@ export function activate(context: vscode.ExtensionContext) {
     // Refresh command
     let refreshCommand = vscode.commands.registerCommand('terminal-file-explorer.refresh', () => {
         remoteExplorer.refresh();
+        vscode.window.showInformationMessage('File browser refreshed');
     });
 
-    // Set connection command
-    let connectCommand = vscode.commands.registerCommand('terminal-file-explorer.connect', async () => {
-        const host = await vscode.window.showInputBox({
-            prompt: 'SSH connection (user@host)',
-            placeHolder: 'username@hostname'
-        });
-
-        if (host) {
-            const workingDir = await vscode.window.showInputBox({
-                prompt: 'Initial working directory',
-                placeHolder: '/home/username',
-                value: '~'
-            });
-
-            remoteExplorer.setConnection(host, workingDir || '~');
-            vscode.window.showInformationMessage(`Connected to ${host}`);
-            outputChannel.appendLine(`Connected to: ${host}, watching directory: ${workingDir}`);
+    // Reveal current directory in tree
+    let revealCommand = vscode.commands.registerCommand('terminal-file-explorer.revealCurrentDirectory', () => {
+        if (currentWorkingDirectory) {
+            remoteExplorer.revealDirectory(currentWorkingDirectory);
+            treeView.reveal(new RemoteFileItem(
+                path.basename(currentWorkingDirectory),
+                currentWorkingDirectory,
+                'directory',
+                vscode.TreeItemCollapsibleState.Expanded
+            ), { select: true, focus: true });
         }
     });
 
-    // Change directory command
+    // Change directory command (when clicking in tree)
     let cdCommand = vscode.commands.registerCommand('terminal-file-explorer.changeDirectory', async (item: RemoteFileItem) => {
         if (item && item.type === 'directory') {
-            const terminal = vscode.window.activeTerminal;
-            if (terminal) {
-                terminal.sendText(`cd "${item.fullPath}"`);
-                outputChannel.appendLine(`Sent cd command: ${item.fullPath}`);
-            }
+            const terminal = vscode.window.activeTerminal || vscode.window.createTerminal();
+            terminal.show();
+            terminal.sendText(`cd "${item.fullPath}"`);
+            outputChannel.appendLine(`Sent cd command: ${item.fullPath}`);
         }
     });
 
@@ -82,23 +95,31 @@ export function activate(context: vscode.ExtensionContext) {
         const terminal = vscode.window.activeTerminal;
         if (terminal) {
             terminal.sendText('pwd');
-            vscode.window.showInformationMessage('Check the terminal for current directory');
+        } else {
+            vscode.window.showInformationMessage(`Current directory: ${currentWorkingDirectory}`);
         }
     });
 
     context.subscriptions.push(
         outputChannel,
         treeView,
+        statusBarItem,
         refreshCommand,
-        connectCommand,
+        revealCommand,
         cdCommand,
         getCurrentDir
     );
 
     // Show helpful message
     outputChannel.appendLine('✅ Terminal File Sync activated');
-    outputChannel.appendLine('💡 Tip: This extension watches cd commands in your terminals');
-    outputChannel.appendLine('💡 Make sure shell integration is enabled in VS Code settings');
+    outputChannel.appendLine('💡 Current directory will be highlighted as you navigate');
+    outputChannel.show();
+}
+
+function updateStatusBar(directory: string) {
+    const dirName = path.basename(directory);
+    statusBarItem.text = `$(folder) ${dirName}`;
+    statusBarItem.tooltip = `Current: ${directory}\nClick to reveal in tree`;
 }
 
 function isCdCommand(command: string): boolean {
@@ -142,26 +163,24 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
     readonly onDidChangeTreeData: vscode.Event<RemoteFileItem | undefined | null | void> = 
         this._onDidChangeTreeData.event;
 
-    private host: string = '';
     private currentPath: string = '';
     private fileCache: Map<string, RemoteFileItem[]> = new Map();
 
     constructor(private outputChannel: vscode.OutputChannel) {}
 
-    setConnection(host: string, initialPath: string) {
-        this.host = host;
-        this.currentPath = initialPath;
-        this.fileCache.clear();
-        this.refresh();
-    }
-
     refresh(): void {
+        this.fileCache.clear();
         this._onDidChangeTreeData.fire();
     }
 
     updateCurrentPath(newPath: string) {
         this.currentPath = newPath;
-        this.outputChannel.appendLine(`Updated current path: ${newPath}`);
+        this.outputChannel.appendLine(`📍 Updated current path: ${newPath}`);
+        this.refresh();
+    }
+
+    revealDirectory(dirPath: string) {
+        this.currentPath = dirPath;
         this.refresh();
     }
 
@@ -170,54 +189,86 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
     }
 
     async getChildren(element?: RemoteFileItem): Promise<RemoteFileItem[]> {
-        if (!this.host) {
+        const targetPath = element ? element.fullPath : this.currentPath;
+
+        if (!targetPath) {
             return [new RemoteFileItem(
-                '⚠️ Not Connected',
-                'Use "Connect to SSH Host" or "Create Watched Terminal"',
+                '📂 No directory selected',
+                'Open a terminal and navigate with cd',
                 'info',
                 vscode.TreeItemCollapsibleState.None
             )];
         }
-
-        const targetPath = element ? element.fullPath : this.currentPath;
 
         // Check cache first
         if (this.fileCache.has(targetPath)) {
             return this.fileCache.get(targetPath) || [];
         }
 
-        // In a real implementation, you would:
-        // 1. Use SSH/SFTP to list directory contents
-        // 2. Parse the output
-        // 3. Return file items
-
-        // For now, return a placeholder
+        // Read actual directory contents
         const items = await this.fetchDirectoryContents(targetPath);
         this.fileCache.set(targetPath, items);
         return items;
     }
 
     private async fetchDirectoryContents(dirPath: string): Promise<RemoteFileItem[]> {
-        // TODO: Implement actual SFTP directory listing
-        // This is where you'd use ssh2-sftp-client or similar
-        
-        this.outputChannel.appendLine(`Would fetch contents of: ${dirPath}`);
-        
-        // Placeholder implementation
-        return [
-            new RemoteFileItem(
-                `📍 Current: ${dirPath}`,
+        try {
+            // Check if directory exists
+            if (!fs.existsSync(dirPath)) {
+                this.outputChannel.appendLine(`⚠️  Directory doesn't exist: ${dirPath}`);
+                return [new RemoteFileItem(
+                    '⚠️ Directory not found',
+                    dirPath,
+                    'info',
+                    vscode.TreeItemCollapsibleState.None
+                )];
+            }
+
+            const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+            
+            // Sort: directories first, then files, both alphabetically
+            const sorted = entries.sort((a, b) => {
+                if (a.isDirectory() && !b.isDirectory()) return -1;
+                if (!a.isDirectory() && b.isDirectory()) return 1;
+                return a.name.localeCompare(b.name);
+            });
+
+            const items = sorted.map(entry => {
+                const fullPath = path.join(dirPath, entry.name);
+                const isDir = entry.isDirectory();
+                const isCurrent = fullPath === this.currentPath;
+                
+                return new RemoteFileItem(
+                    entry.name,
+                    fullPath,
+                    isDir ? 'directory' : 'file',
+                    isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+                    isCurrent
+                );
+            });
+
+            // If this is the current directory, add a header
+            if (dirPath === this.currentPath) {
+                items.unshift(new RemoteFileItem(
+                    `📍 Current Directory`,
+                    dirPath,
+                    'info',
+                    vscode.TreeItemCollapsibleState.None,
+                    true
+                ));
+            }
+
+            return items;
+
+        } catch (error) {
+            this.outputChannel.appendLine(`❌ Error reading directory ${dirPath}: ${error}`);
+            return [new RemoteFileItem(
+                `❌ Error: ${error}`,
                 dirPath,
                 'info',
                 vscode.TreeItemCollapsibleState.None
-            ),
-            new RemoteFileItem(
-                '💡 SFTP integration needed',
-                'Install ssh2-sftp-client to browse files',
-                'info',
-                vscode.TreeItemCollapsibleState.None
-            )
-        ];
+            )];
+        }
     }
 }
 
@@ -226,21 +277,30 @@ class RemoteFileItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly fullPath: string,
         public readonly type: 'file' | 'directory' | 'info',
-        public readonly collapsibleState: vscode.TreeItemCollapsibleState
+        public readonly collapsibleState: vscode.TreeItemCollapsibleState,
+        public readonly isCurrent: boolean = false
     ) {
         super(label, collapsibleState);
 
         this.tooltip = fullPath;
         this.contextValue = type;
 
-        // Set icons based on type
+        // Set icons and styling based on type
         if (type === 'directory') {
-            this.iconPath = new vscode.ThemeIcon('folder');
+            this.iconPath = new vscode.ThemeIcon(
+                isCurrent ? 'folder-opened' : 'folder',
+                isCurrent ? new vscode.ThemeColor('terminal.ansiGreen') : undefined
+            );
             this.command = {
                 command: 'terminal-file-explorer.changeDirectory',
                 title: 'Change Directory',
                 arguments: [this]
             };
+            
+            // Highlight current directory
+            if (isCurrent) {
+                this.description = '← You are here';
+            }
         } else if (type === 'file') {
             this.iconPath = new vscode.ThemeIcon('file');
         } else {
@@ -251,4 +311,5 @@ class RemoteFileItem extends vscode.TreeItem {
 
 export function deactivate() {
     outputChannel?.dispose();
+    statusBarItem?.dispose();
 }

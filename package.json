@@ -1,9 +1,9 @@
 {
   "_comment_artifact": "terminal-sync-package",
-  "_comment_version": "1.0.1",
+  "_comment_version": "1.0.2",
   "name": "terminal-file-explorer",
-  "displayName": "Terminal-Synced File Explorer",
-  "description": "File browser that syncs with terminal cd commands via SSH/SFTP",
+  "displayName": "Terminal Directory Navigator",
+  "description": "File browser that syncs with terminal cd commands",
   "version": "1.0.0",
   "publisher": "your-publisher-name",
   "engines": {
@@ -17,37 +17,32 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "terminal-file-explorer",
-          "title": "Remote Files",
-          "icon": "resources/icon.svg"
-        }
-      ]
-    },
     "views": {
-      "terminal-file-explorer": [
+      "explorer": [
         {
           "id": "terminalFileExplorer",
-          "name": "Remote File Browser"
+          "name": "Directory Navigator"
         }
       ]
     },
     "commands": [
       {
         "command": "terminal-file-explorer.refresh",
-        "title": "Refresh",
+        "title": "Directory Navigator: Refresh",
         "icon": "$(refresh)"
       },
       {
-        "command": "terminal-file-explorer.connect",
-        "title": "Terminal Explorer: Connect to SSH Host",
-        "icon": "$(plug)"
+        "command": "terminal-file-explorer.revealCurrentDirectory",
+        "title": "Directory Navigator: Reveal Current Directory",
+        "icon": "$(eye)"
       },
       {
         "command": "terminal-file-explorer.changeDirectory",
         "title": "Change to this directory"
+      },
+      {
+        "command": "terminal-file-explorer.getCurrentDirectory",
+        "title": "Directory Navigator: Show Current Directory"
       }
     ],
     "menus": {
@@ -58,7 +53,7 @@
           "group": "navigation"
         },
         {
-          "command": "terminal-file-explorer.connect",
+          "command": "terminal-file-explorer.revealCurrentDirectory",
           "when": "view == terminalFileExplorer",
           "group": "navigation"
         }
@@ -73,16 +68,14 @@
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/ssh2": "^1.11.0",
     "@types/vscode": "^1.80.0",
+    "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.40.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "node-pty": "^1.0.0",
     "ssh2-sftp-client": "^10.0.3"
   }
 }
