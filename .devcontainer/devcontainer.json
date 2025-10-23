@@ -1,16 +1,28 @@
 {
-  "name": "Terminal File Explorer Development",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  "name": "Terminal Navigation Tutorial",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
   
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.shellIntegration.enabled": true,
+        "workbench.startupEditor": "none"
       }
     }
   },
   
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "mkdir -p ~/practice/{data,projects,documents} && mkdir -p ~/practice/data/{backup,raw,processed} && echo 'Tutorial environment ready!'",
   
-  "remoteUser": "node"
+  "postAttachCommand": {
+    "openLesson": "code --reuse-window lessons/01-introduction.md"
+  },
+  
+  "remoteUser": "vscode"
 }
