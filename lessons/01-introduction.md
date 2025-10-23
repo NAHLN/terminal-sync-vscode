@@ -1,3 +1,5 @@
-# Lesson 01
 
-First lesson will appear here
+# Getting Started
+
+**To view this lesson in preview mode:**
+Press `Ctrl+Shift+V` (or `Cmd+Shift+V` on Mac)
