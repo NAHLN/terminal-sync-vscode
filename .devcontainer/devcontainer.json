@@ -18,7 +18,7 @@
     }
   },
   
-  "postCreateCommand": "mkdir -p ~/practice/{data,projects,documents} && mkdir -p ~/practice/data/{backup,raw,processed} && echo 'Tutorial environment ready! Type: cd ~ to start in your home directory'",
+  "postCreateCommand": "postCreateCommand": "mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
   
   "postStartCommand": "cd ~",
   
