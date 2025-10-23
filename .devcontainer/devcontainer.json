@@ -18,10 +18,12 @@
     }
   },
   
-  "postCreateCommand": "mkdir -p ~/practice/{data,projects,documents} && mkdir -p ~/practice/data/{backup,raw,processed} && echo 'Tutorial environment ready!'",
+  "postCreateCommand": "mkdir -p ~/practice/{data,projects,documents} && mkdir -p ~/practice/data/{backup,raw,processed} && echo 'Tutorial environment ready! Type: cd ~ to start in your home directory'",
+  
+  "postStartCommand": "cd ~",
   
   "postAttachCommand": {
-    "openLesson": "code --reuse-window lessons/01-introduction.md"
+    "openLesson": "code --reuse-window lessons/01-introduction.md && echo '💡 Tip: Press Ctrl+Shift+V to preview the markdown lesson'"
   },
   
   "remoteUser": "vscode"
