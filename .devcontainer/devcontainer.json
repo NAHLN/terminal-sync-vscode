@@ -18,7 +18,7 @@
     }
   },
   
-  "postCreateCommand": "postCreateCommand": "mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
+  "postCreateCommand": "mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
   
   "postStartCommand": "cd ~",
   
