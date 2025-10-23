@@ -1,0 +1,16 @@
+{
+  "name": "Terminal File Explorer Development",
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
+  
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  
+  "postCreateCommand": "npm install",
+  
+  "remoteUser": "node"
+}
