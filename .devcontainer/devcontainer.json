@@ -18,9 +18,13 @@
     }
   },
   
-  "postAttachCommand": "npm install && npm run compile && mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
+  
   
   "postStartCommand": "cd ~",
-  
-  "remoteUser": "vscode"
+  "postAttachCommand": {
+    "npm": "npm install && npm run compile",
+    "directorySetup": "mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
+    "openLesson": "code --reuse-window lessons/01-introduction.md && echo '💡 Tip: Press Ctrl+Shift+V to preview the markdown lesson'"
+  },
+  "remoteUser": "learner"
 }
