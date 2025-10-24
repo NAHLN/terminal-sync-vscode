@@ -18,7 +18,9 @@
       }
     }
   },
-  
+  "containerEnv": {
+    "PS1": "[\\u@\\h \\w]\\$ "
+  },
   
   
   "postStartCommand": "cd ~",
