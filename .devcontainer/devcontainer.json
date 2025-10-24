@@ -10,7 +10,7 @@
   
   "customizations": {
     "vscode": {
-      "remoteUser": "learner",
+      "remoteUser": "vscode",
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.shellIntegration.enabled": true,
@@ -22,11 +22,10 @@
   
   
   "postStartCommand": "cd ~",
-  "postCreateCommand": "sudo useradd -m -s /bin/bash learner && sudo chown -R learner:learner /workspaces",
   "postAttachCommand": {
     "npm": "npm install && npm run compile",
     "directorySetup": "mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
     "openLesson": "code --reuse-window lessons/01-introduction.md && echo '💡 Tip: Press Ctrl+Shift+V to preview the markdown lesson'"
   },
-  "remoteUser": "learner"
+  "remoteUser": "vscode"
 }
