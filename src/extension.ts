@@ -1,8 +1,8 @@
 // src/extension.ts
 // Artifact: terminal-sync-full
-// Version: 1.0.3
+// Version: 1.1.0
 // Main extension file for Terminal-Synced File Browser
-// Enhanced for teaching: highlights and syncs current working directory
+// Enhanced to show files only after 'ls' command with GNU ls option support
 
 import * as vscode from 'vscode';
 import * as path from 'path';
@@ -12,6 +12,20 @@ let outputChannel: vscode.OutputChannel;
 let remoteExplorer: RemoteFileExplorer;
 let currentWorkingDirectory: string = '';
 let statusBarItem: vscode.StatusBarItem;
+let shouldShowFiles: boolean = false;  // Only show files after ls command
+let lsOptions: LsOptions = {
+    showHidden: false,
+    longFormat: false,
+    sortBy: 'name',
+    reverseSort: false
+};
+
+interface LsOptions {
+    showHidden: boolean;      // -a or -A
+    longFormat: boolean;      // -l
+    sortBy: 'name' | 'time' | 'size' | 'none';  // -t, -S, -U
+    reverseSort: boolean;     // -r
+}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Terminal-Synced File Browser activated');
@@ -36,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     const initialDir = workspaceFolder || process.env.HOME || process.cwd();
     currentWorkingDirectory = initialDir;
-    remoteExplorer.updateCurrentPath(initialDir);
+    remoteExplorer.updateCurrentPath(initialDir, false, lsOptions);  // Don't show files until ls
     updateStatusBar(initialDir);
 
     // Watch shell execution events (VS Code 1.72+)
@@ -45,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
             const command = e.execution.commandLine.value.trim();
             const exitCode = e.exitCode;
             
-            outputChannel.appendLine(`🔍 Command: ${command} (exit: ${exitCode})`);
+            outputChannel.appendLine(`Command: ${command} (exit: ${exitCode})`);
 
             // Detect cd commands
             if (isCdCommand(command)) {
@@ -55,26 +69,44 @@ export function activate(context: vscode.ExtensionContext) {
                     
                     // Check if we could parse it and it exists
                     if (targetDir && fs.existsSync(targetDir)) {
-                        outputChannel.appendLine(`✅ CD to: ${targetDir}`);
+                        outputChannel.appendLine(`CD to: ${targetDir}`);
                         currentWorkingDirectory = targetDir;
-                        remoteExplorer.updateCurrentPath(targetDir);
+                        // Don't show files yet - wait for ls
+                        shouldShowFiles = false;
+                        remoteExplorer.updateCurrentPath(targetDir, false, lsOptions);
                         updateStatusBar(targetDir);
-                        vscode.window.setStatusBarMessage(`📂 ${path.basename(targetDir)}`, 2000);
+                        vscode.window.setStatusBarMessage(`Dir: ${path.basename(targetDir)}`, 2000);
                     } else {
                         // Couldn't parse or doesn't exist - use terminal's cwd if available
-                        outputChannel.appendLine(`⚠️  Using terminal cwd for sync`);
-                        syncFromTerminal(e.terminal);
+                        outputChannel.appendLine(`Using terminal cwd for sync`);
+                        syncFromTerminal(e.terminal, false);
                     }
                 } else {
-                    outputChannel.appendLine(`❌ CD failed - no change`);
-                    vscode.window.setStatusBarMessage(`❌ Directory not found`, 2000);
+                    outputChannel.appendLine(`CD failed - no change`);
+                    vscode.window.setStatusBarMessage(`Directory not found`, 2000);
+                }
+            }
+            
+            // Detect ls command
+            if (isLsCommand(command)) {
+                if (exitCode === 0) {
+                    outputChannel.appendLine(`LS command detected`);
+                    // Parse ls options
+                    const parsedOptions = parseLsOptions(command);
+                    lsOptions = parsedOptions;
+                    shouldShowFiles = true;
+                    outputChannel.appendLine(`LS options: ${JSON.stringify(parsedOptions)}`);
+                    remoteExplorer.updateCurrentPath(currentWorkingDirectory, true, parsedOptions);
+                    vscode.window.setStatusBarMessage(`Listed files`, 2000);
+                } else {
+                    outputChannel.appendLine(`LS failed`);
                 }
             }
             
             // Detect pwd command to re-sync
             if (isPwdCommand(command)) {
-                outputChannel.appendLine(`📍 PWD - syncing from terminal`);
-                syncFromTerminal(e.terminal);
+                outputChannel.appendLine(`PWD - syncing from terminal`);
+                syncFromTerminal(e.terminal, shouldShowFiles);
             }
         })
     );
@@ -129,8 +161,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Show helpful message
-    outputChannel.appendLine('✅ Terminal File Sync activated');
-    outputChannel.appendLine('💡 Current directory will be highlighted as you navigate');
+    outputChannel.appendLine('Terminal File Sync activated');
+    outputChannel.appendLine('Use cd to navigate, then ls to view files');
     outputChannel.show();
 }
 
@@ -140,31 +172,22 @@ function updateStatusBar(directory: string) {
     statusBarItem.tooltip = `Current: ${directory}\nClick to reveal in tree`;
 }
 
-function syncFromTerminal(terminal: vscode.Terminal) {
+function syncFromTerminal(terminal: vscode.Terminal, showFiles: boolean) {
     // Try to get the terminal's current working directory
     // This uses the shell integration's cwd tracking
     const shellIntegration = (terminal as any).shellIntegration;
     
     if (shellIntegration?.cwd) {
         const cwd = shellIntegration.cwd.fsPath || shellIntegration.cwd;
-        outputChannel.appendLine(`🔄 Synced from terminal cwd: ${cwd}`);
+        outputChannel.appendLine(`Synced from terminal cwd: ${cwd}`);
         currentWorkingDirectory = cwd;
-        remoteExplorer.updateCurrentPath(cwd);
+        shouldShowFiles = showFiles;
+        remoteExplorer.updateCurrentPath(cwd, showFiles, lsOptions);
         updateStatusBar(cwd);
     } else {
-        outputChannel.appendLine(`⚠️  Shell integration cwd not available`);
+        outputChannel.appendLine(`Shell integration cwd not available`);
         // Fallback: just refresh current view
         remoteExplorer.refresh();
-    }
-}
-
-function triggerPwdSync() {
-    // Automatically send pwd command to get current directory
-    const terminal = vscode.window.activeTerminal;
-    if (terminal) {
-        // Send pwd silently to resync
-        outputChannel.appendLine('🔄 Auto-syncing with pwd...');
-        terminal.sendText('pwd');
     }
 }
 
@@ -174,15 +197,69 @@ function isPwdCommand(command: string): boolean {
 
 function isCdCommand(command: string): boolean {
     const cdPatterns = [
-        /^cd\s+/,
+        /^cd(\s|$)/,        // cd with optional space/argument or end of line
         /^pushd\s+/,
-        /&&\s*cd\s+/,
-        /;\s*cd\s+/
+        /&&\s*cd(\s|$)/,    // cd in command chain
+        /;\s*cd(\s|$)/      // cd after semicolon
     ];
     return cdPatterns.some(pattern => pattern.test(command));
 }
 
+function isLsCommand(command: string): boolean {
+    // Match ls command, potentially with options and arguments
+    // Handles: ls, ls -la, ls /path, ls -l /path, etc.
+    return /^\s*ls(\s|$)/.test(command);
+}
+
+function parseLsOptions(command: string): LsOptions {
+    const options: LsOptions = {
+        showHidden: false,
+        longFormat: false,
+        sortBy: 'name',
+        reverseSort: false
+    };
+
+    // Extract options part (everything after 'ls' but before paths)
+    const parts = command.trim().split(/\s+/);
+    
+    for (const part of parts) {
+        if (!part.startsWith('-')) continue;
+        
+        // Handle both -a and --all style options
+        if (part === '--all' || part.includes('a')) {
+            options.showHidden = true;
+        }
+        if (part === '--almost-all' || part.includes('A')) {
+            options.showHidden = true;  // -A is similar to -a
+        }
+        if (part === '-l' || part.includes('l')) {
+            options.longFormat = true;
+        }
+        if (part === '--reverse' || part.includes('r')) {
+            options.reverseSort = true;
+        }
+        if (part === '-t' || part.includes('t')) {
+            options.sortBy = 'time';
+        }
+        if (part === '-S' || part.includes('S')) {
+            options.sortBy = 'size';
+        }
+        if (part === '-U' || part.includes('U')) {
+            options.sortBy = 'none';  // Unsorted (directory order)
+        }
+    }
+
+    return options;
+}
+
 function extractCdTarget(command: string): string | null {
+    // Check if it's just "cd" without arguments - should go to HOME
+    const justCd = command.match(/(?:^|&&|;)\s*cd\s*(?:&&|;|$)/);
+    if (justCd) {
+        const homeDir = process.env.HOME || process.env.USERPROFILE;
+        return homeDir || null;
+    }
+
     const cdMatch = command.match(/(?:^|&&|;)\s*(?:cd|pushd)\s+(.+?)(?:\s*&&|\s*;|$)/);
     if (!cdMatch) return null;
 
@@ -214,18 +291,29 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
         this._onDidChangeTreeData.event;
 
     private currentPath: string = '';
+    private showFiles: boolean = false;
+    private lsOptions: LsOptions;
     private fileCache: Map<string, RemoteFileItem[]> = new Map();
 
-    constructor(private outputChannel: vscode.OutputChannel) {}
+    constructor(private outputChannel: vscode.OutputChannel) {
+        this.lsOptions = {
+            showHidden: false,
+            longFormat: false,
+            sortBy: 'name',
+            reverseSort: false
+        };
+    }
 
     refresh(): void {
         this.fileCache.clear();
         this._onDidChangeTreeData.fire();
     }
 
-    updateCurrentPath(newPath: string) {
+    updateCurrentPath(newPath: string, showFiles: boolean, options: LsOptions) {
         this.currentPath = newPath;
-        this.outputChannel.appendLine(`📍 Updated current path: ${newPath}`);
+        this.showFiles = showFiles;
+        this.lsOptions = options;
+        this.outputChannel.appendLine(`Updated current path: ${newPath}, showFiles: ${showFiles}`);
         this.refresh();
     }
 
@@ -243,21 +331,38 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
 
         if (!targetPath) {
             return [new RemoteFileItem(
-                '📂 No directory selected',
+                'No directory selected',
                 'Open a terminal and navigate with cd',
                 'info',
                 vscode.TreeItemCollapsibleState.None
             )];
         }
 
+        // If we're at the root and files shouldn't be shown yet
+        if (!element && !this.showFiles) {
+            return [new RemoteFileItem(
+                `Current: ${path.basename(targetPath)}`,
+                targetPath,
+                'current-dir-header',
+                vscode.TreeItemCollapsibleState.None,
+                true
+            ), new RemoteFileItem(
+                'Run "ls" to view files',
+                'Waiting for ls command',
+                'info',
+                vscode.TreeItemCollapsibleState.None
+            )];
+        }
+
         // Check cache first
-        if (this.fileCache.has(targetPath)) {
-            return this.fileCache.get(targetPath) || [];
+        const cacheKey = `${targetPath}-${this.showFiles}-${JSON.stringify(this.lsOptions)}`;
+        if (this.fileCache.has(cacheKey)) {
+            return this.fileCache.get(cacheKey) || [];
         }
 
         // Read actual directory contents
         const items = await this.fetchDirectoryContents(targetPath);
-        this.fileCache.set(targetPath, items);
+        this.fileCache.set(cacheKey, items);
         return items;
     }
 
@@ -265,9 +370,9 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
         try {
             // Check if directory exists
             if (!fs.existsSync(dirPath)) {
-                this.outputChannel.appendLine(`⚠️  Directory doesn't exist: ${dirPath}`);
+                this.outputChannel.appendLine(`Directory doesn't exist: ${dirPath}`);
                 return [new RemoteFileItem(
-                    '⚠️ Directory not found',
+                    'Directory not found',
                     dirPath,
                     'info',
                     vscode.TreeItemCollapsibleState.None
@@ -276,31 +381,45 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
 
             const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
             
-            // Sort: directories first, then files, both alphabetically
-            const sorted = entries.sort((a, b) => {
-                if (a.isDirectory() && !b.isDirectory()) return -1;
-                if (!a.isDirectory() && b.isDirectory()) return 1;
-                return a.name.localeCompare(b.name);
-            });
+            // Filter hidden files based on options
+            let filtered = entries;
+            if (!this.lsOptions.showHidden) {
+                filtered = entries.filter(entry => !entry.name.startsWith('.'));
+            }
 
-            const items = sorted.map(entry => {
+            // Sort based on options
+            let sorted = await this.sortEntries(filtered, dirPath);
+
+            // Map to RemoteFileItems with stat info for long format
+            const items: RemoteFileItem[] = [];
+            for (const entry of sorted) {
                 const fullPath = path.join(dirPath, entry.name);
                 const isDir = entry.isDirectory();
                 const isCurrent = fullPath === this.currentPath;
                 
-                return new RemoteFileItem(
+                let stat: fs.Stats | undefined;
+                if (this.lsOptions.longFormat) {
+                    try {
+                        stat = await fs.promises.stat(fullPath);
+                    } catch (err) {
+                        // Ignore stat errors
+                    }
+                }
+                
+                items.push(new RemoteFileItem(
                     entry.name,
                     fullPath,
                     isDir ? 'directory' : 'file',
                     isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
-                    isCurrent
-                );
-            });
+                    isCurrent,
+                    stat
+                ));
+            }
 
             // If this is the current directory, add a header
             if (dirPath === this.currentPath) {
                 items.unshift(new RemoteFileItem(
-                    `📍 ${path.basename(dirPath) || path.sep}`,
+                    `Current: ${path.basename(dirPath) || path.sep}`,
                     dirPath,
                     'current-dir-header',
                     vscode.TreeItemCollapsibleState.None,
@@ -311,14 +430,67 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
             return items;
 
         } catch (error) {
-            this.outputChannel.appendLine(`❌ Error reading directory ${dirPath}: ${error}`);
+            this.outputChannel.appendLine(`Error reading directory ${dirPath}: ${error}`);
             return [new RemoteFileItem(
-                `❌ Error: ${error}`,
+                `Error: ${error}`,
                 dirPath,
                 'info',
                 vscode.TreeItemCollapsibleState.None
             )];
         }
+    }
+
+    private async sortEntries(entries: fs.Dirent[], dirPath: string): Promise<fs.Dirent[]> {
+        if (this.lsOptions.sortBy === 'none') {
+            // No sorting - return as is
+            return entries;
+        }
+
+        let sorted: fs.Dirent[];
+
+        if (this.lsOptions.sortBy === 'name') {
+            // Sort by name, directories first
+            sorted = entries.sort((a, b) => {
+                if (a.isDirectory() && !b.isDirectory()) return -1;
+                if (!a.isDirectory() && b.isDirectory()) return 1;
+                return a.name.localeCompare(b.name);
+            });
+        } else if (this.lsOptions.sortBy === 'time') {
+            // Sort by modification time
+            const entriesWithTime: Array<{entry: fs.Dirent, mtime: number}> = [];
+            for (const entry of entries) {
+                try {
+                    const stat = await fs.promises.stat(path.join(dirPath, entry.name));
+                    entriesWithTime.push({ entry, mtime: stat.mtimeMs });
+                } catch {
+                    entriesWithTime.push({ entry, mtime: 0 });
+                }
+            }
+            entriesWithTime.sort((a, b) => b.mtime - a.mtime);
+            sorted = entriesWithTime.map(e => e.entry);
+        } else if (this.lsOptions.sortBy === 'size') {
+            // Sort by size
+            const entriesWithSize: Array<{entry: fs.Dirent, size: number}> = [];
+            for (const entry of entries) {
+                try {
+                    const stat = await fs.promises.stat(path.join(dirPath, entry.name));
+                    entriesWithSize.push({ entry, size: stat.size });
+                } catch {
+                    entriesWithSize.push({ entry, size: 0 });
+                }
+            }
+            entriesWithSize.sort((a, b) => b.size - a.size);
+            sorted = entriesWithSize.map(e => e.entry);
+        } else {
+            sorted = entries;
+        }
+
+        // Apply reverse if requested
+        if (this.lsOptions.reverseSort) {
+            sorted.reverse();
+        }
+
+        return sorted;
     }
 }
 
@@ -328,7 +500,8 @@ class RemoteFileItem extends vscode.TreeItem {
         public readonly fullPath: string,
         public readonly type: 'file' | 'directory' | 'info' | 'current-dir-header',
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly isCurrent: boolean = false
+        public readonly isCurrent: boolean = false,
+        public readonly stat?: fs.Stats
     ) {
         super(label, collapsibleState);
 
@@ -342,7 +515,6 @@ class RemoteFileItem extends vscode.TreeItem {
                 'location',
                 new vscode.ThemeColor('terminal.ansiGreen')
             );
-            // Removed "You are here" - just show the directory name
         } else if (type === 'directory') {
             this.iconPath = new vscode.ThemeIcon(
                 isCurrent ? 'folder-opened' : 'folder',
@@ -356,13 +528,29 @@ class RemoteFileItem extends vscode.TreeItem {
             
             // Highlight current directory
             if (isCurrent) {
-                this.description = '← Current';
+                this.description = 'Current';
+            } else if (stat) {
+                // Show size for long format
+                this.description = this.formatSize(stat.size);
             }
         } else if (type === 'file') {
             this.iconPath = new vscode.ThemeIcon('file');
+            
+            // Show file info for long format
+            if (stat) {
+                this.description = this.formatSize(stat.size);
+                this.tooltip = `${fullPath}\nSize: ${this.formatSize(stat.size)}\nModified: ${stat.mtime.toLocaleString()}`;
+            }
         } else {
             this.iconPath = new vscode.ThemeIcon('info');
         }
+    }
+
+    private formatSize(bytes: number): string {
+        if (bytes < 1024) return `${bytes}B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}K`;
+        if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}M`;
+        return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}G`;
     }
 }
 
