@@ -1,10 +1,10 @@
 {
   "_comment_artifact": "terminal-sync-package",
-  "_comment_version": "1.0.2",
+  "_comment_version": "1.1.0",
   "name": "terminal-file-explorer",
   "displayName": "Terminal Directory Navigator",
   "description": "File browser that syncs with terminal cd commands",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "your-publisher-name",
   "engines": {
     "vscode": "^1.80.0"
@@ -17,11 +17,26 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "terminalFileExplorerView",
+          "title": "Terminal File Explorer",
+          "icon": "$(terminal)"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "terminalFileExplorerView": [
         {
           "id": "terminalFileExplorer",
-          "name": "Directory Navigator"
+          "name": "Directory Tree",
+          "type": "tree"
+        },
+        {
+          "id": "terminalLsTable",
+          "name": "LS Table",
+          "type": "webview"
         }
       ]
     },

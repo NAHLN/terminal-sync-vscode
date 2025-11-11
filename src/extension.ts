@@ -10,6 +10,7 @@ import * as fs from 'fs';
 
 let outputChannel: vscode.OutputChannel;
 let remoteExplorer: RemoteFileExplorer;
+let lsTableViewProvider: LsTableViewProvider;
 let currentWorkingDirectory: string = '';
 let statusBarItem: vscode.StatusBarItem;
 let shouldShowFiles: boolean = false;  // Only show files after ls command
@@ -47,6 +48,12 @@ export function activate(context: vscode.ExtensionContext) {
         treeDataProvider: remoteExplorer,
         showCollapseAll: true
     });
+
+    // Create the ls table webview provider
+    lsTableViewProvider = new LsTableViewProvider(context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('terminalLsTable', lsTableViewProvider)
+    );
 
     // Initialize with workspace folder or home directory
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -99,6 +106,10 @@ export function activate(context: vscode.ExtensionContext) {
                     shouldShowFiles = true;
                     outputChannel.appendLine(`LS options: ${JSON.stringify(parsedOptions)}`);
                     remoteExplorer.updateCurrentPath(currentWorkingDirectory, true, parsedOptions);
+                    
+                    // Update webview table
+                    await updateLsTableView();
+                    
                     vscode.window.setStatusBarMessage(`Listed files`, 2000);
                 } else {
                     outputChannel.appendLine(`LS failed`);
@@ -630,6 +641,322 @@ class RemoteFileItem extends vscode.TreeItem {
             const year = date.getFullYear();
             return `${month} ${day}  ${year}`;
         }
+    }
+}
+
+async function updateLsTableView() {
+    if (!lsTableViewProvider || !shouldShowFiles) {
+        return;
+    }
+
+    try {
+        // Read directory contents
+        const entries = await fs.promises.readdir(currentWorkingDirectory, { withFileTypes: true });
+        
+        // Filter hidden files
+        let filtered = entries;
+        if (!lsOptions.showHidden) {
+            filtered = entries.filter(entry => !entry.name.startsWith('.'));
+        }
+
+        // Get file stats and create data array
+        const fileData: Array<{
+            name: string;
+            isDir: boolean;
+            size: number;
+            mtime: Date;
+        }> = [];
+
+        for (const entry of filtered) {
+            const fullPath = path.join(currentWorkingDirectory, entry.name);
+            try {
+                const stat = await fs.promises.stat(fullPath);
+                fileData.push({
+                    name: entry.name,
+                    isDir: entry.isDirectory(),
+                    size: stat.size,
+                    mtime: stat.mtime
+                });
+            } catch (err) {
+                // Skip files we can't stat
+            }
+        }
+
+        // Sort the data
+        fileData.sort((a, b) => {
+            if (lsOptions.sortBy === 'none') {
+                return 0;
+            } else if (lsOptions.sortBy === 'name') {
+                // Directories first, then by name
+                if (a.isDir && !b.isDir) return -1;
+                if (!a.isDir && b.isDir) return 1;
+                return a.name.localeCompare(b.name);
+            } else if (lsOptions.sortBy === 'time') {
+                return b.mtime.getTime() - a.mtime.getTime();
+            } else if (lsOptions.sortBy === 'size') {
+                return b.size - a.size;
+            }
+            return 0;
+        });
+
+        if (lsOptions.reverseSort) {
+            fileData.reverse();
+        }
+
+        // Update the webview
+        lsTableViewProvider.updateTable(currentWorkingDirectory, fileData, lsOptions);
+    } catch (err) {
+        outputChannel.appendLine(`Error updating table view: ${err}`);
+    }
+}
+
+interface FileData {
+    name: string;
+    isDir: boolean;
+    size: number;
+    mtime: Date;
+}
+
+class LsTableViewProvider implements vscode.WebviewViewProvider {
+    private _view?: vscode.WebviewView;
+
+    constructor(private readonly _extensionUri: vscode.Uri) {}
+
+    public resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken
+    ) {
+        this._view = webviewView;
+
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [this._extensionUri]
+        };
+
+        webviewView.webview.html = this._getInitialHtml();
+
+        // Handle messages from webview
+        webviewView.webview.onDidReceiveMessage(async (message) => {
+            switch (message.command) {
+                case 'changeDirectory':
+                    const terminal = vscode.window.activeTerminal || vscode.window.createTerminal();
+                    terminal.show();
+                    terminal.sendText(`cd "${message.path}"`);
+                    break;
+                case 'openFile':
+                    const doc = await vscode.workspace.openTextDocument(message.path);
+                    await vscode.window.showTextDocument(doc);
+                    break;
+            }
+        });
+    }
+
+    public updateTable(directory: string, files: FileData[], options: LsOptions) {
+        if (this._view) {
+            this._view.webview.html = this._getHtmlForTable(directory, files, options);
+        }
+    }
+
+    private _getInitialHtml(): string {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LS Table</title>
+    <style>
+        body {
+            padding: 10px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+        }
+        .waiting {
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="waiting">
+        <p>Run <code>ls</code> in the terminal to view directory contents</p>
+    </div>
+</body>
+</html>`;
+    }
+
+    private _getHtmlForTable(directory: string, files: FileData[], options: LsOptions): string {
+        const formatSize = (bytes: number): string => {
+            if (!options.humanReadable) {
+                return bytes.toString();
+            }
+            if (bytes < 1024) return `${bytes}B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}K`;
+            if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}M`;
+            return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}G`;
+        };
+
+        const formatDate = (date: Date): string => {
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const month = months[date.getMonth()];
+            const day = date.getDate().toString().padStart(2, ' ');
+            
+            if (diffDays < 180) {
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${month} ${day} ${hours}:${minutes}`;
+            } else {
+                const year = date.getFullYear();
+                return `${month} ${day}  ${year}`;
+            }
+        };
+
+        const dirName = path.basename(directory) || directory;
+        
+        const tableRows = files.map(file => {
+            const icon = file.isDir ? '📁' : '📄';
+            const className = file.isDir ? 'directory' : 'file';
+            const action = file.isDir ? 'changeDirectory' : 'openFile';
+            const fullPath = path.join(directory, file.name);
+            
+            return `
+                <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                    <td class="icon">${icon}</td>
+                    <td class="name">${file.name}</td>
+                    <td class="size">${formatSize(file.size)}</td>
+                    <td class="date">${formatDate(file.mtime)}</td>
+                </tr>
+            `;
+        }).join('');
+
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LS Table</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+        }
+        .header {
+            padding: 8px 10px;
+            background-color: var(--vscode-sideBarSectionHeader-background);
+            border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .directory-path {
+            color: var(--vscode-terminal-ansiGreen);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        th {
+            position: sticky;
+            top: 33px;
+            background-color: var(--vscode-sideBarSectionHeader-background);
+            padding: 4px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--vscode-descriptionForeground);
+        }
+        th.icon { width: 30px; }
+        th.name { width: auto; }
+        th.size { width: 80px; }
+        th.date { width: 120px; }
+        tr {
+            cursor: pointer;
+        }
+        tr:hover {
+            background-color: var(--vscode-list-hoverBackground);
+        }
+        tr.directory:hover {
+            background-color: var(--vscode-list-activeSelectionBackground);
+        }
+        td {
+            padding: 4px 8px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        td.icon {
+            text-align: center;
+            font-size: 14px;
+        }
+        td.name {
+            font-weight: 500;
+        }
+        tr.directory td.name {
+            color: var(--vscode-terminal-ansiBlue);
+            font-weight: 600;
+        }
+        td.size {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        td.date {
+            color: var(--vscode-descriptionForeground);
+            font-variant-numeric: tabular-nums;
+        }
+        .empty {
+            padding: 40px;
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="directory-path">📂 ${dirName}</span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th class="icon"></th>
+                <th class="name">Name</th>
+                <th class="size">Size</th>
+                <th class="date">Modified</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows || '<tr><td colspan="4" class="empty">No files to display</td></tr>'}
+        </tbody>
+    </table>
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        function handleClick(action, path) {
+            vscode.postMessage({
+                command: action,
+                path: path
+            });
+        }
+    </script>
+</body>
+</html>`;
     }
 }
 
