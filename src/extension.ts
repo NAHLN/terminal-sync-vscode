@@ -530,15 +530,19 @@ class RemoteFileItem extends vscode.TreeItem {
             if (isCurrent) {
                 this.description = 'Current';
             } else if (stat) {
-                // Show size for long format
-                this.description = this.formatSize(stat.size);
+                // Show size and date for long format with padding for alignment
+                const sizeStr = this.formatSize(stat.size);
+                const dateStr = this.formatDate(stat.mtime);
+                this.description = `${this.padRight(sizeStr, 8)}${dateStr}`;
             }
         } else if (type === 'file') {
             this.iconPath = new vscode.ThemeIcon('file');
             
             // Show file info for long format
             if (stat) {
-                this.description = this.formatSize(stat.size);
+                const sizeStr = this.formatSize(stat.size);
+                const dateStr = this.formatDate(stat.mtime);
+                this.description = `${this.padRight(sizeStr, 8)}${dateStr}`;
                 this.tooltip = `${fullPath}\nSize: ${this.formatSize(stat.size)}\nModified: ${stat.mtime.toLocaleString()}`;
             }
         } else {
@@ -551,6 +555,40 @@ class RemoteFileItem extends vscode.TreeItem {
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}K`;
         if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}M`;
         return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}G`;
+    }
+
+    private padRight(str: string, width: number): string {
+        // Use non-breaking spaces (\u00A0) for padding to maintain alignment
+        const NBSP = '\u00A0';
+        if (str.length >= width) {
+            return str;
+        }
+        return str + NBSP.repeat(width - str.length);
+    }
+
+    private formatDate(date: Date): string {
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        // If within the last 6 months, show like GNU ls: "Mon DD HH:MM"
+        // If older, show: "Mon DD  YYYY"
+        if (diffDays < 180) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const month = months[date.getMonth()];
+            const day = date.getDate().toString().padStart(2, ' ');
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${month} ${day} ${hours}:${minutes}`;
+        } else {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const month = months[date.getMonth()];
+            const day = date.getDate().toString().padStart(2, ' ');
+            const year = date.getFullYear();
+            return `${month} ${day}  ${year}`;
+        }
     }
 }
 
