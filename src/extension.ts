@@ -17,7 +17,8 @@ let lsOptions: LsOptions = {
     showHidden: false,
     longFormat: false,
     sortBy: 'name',
-    reverseSort: false
+    reverseSort: false,
+    humanReadable: false
 };
 
 interface LsOptions {
@@ -25,6 +26,7 @@ interface LsOptions {
     longFormat: boolean;      // -l
     sortBy: 'name' | 'time' | 'size' | 'none';  // -t, -S, -U
     reverseSort: boolean;     // -r
+    humanReadable: boolean;   // -h
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -216,7 +218,8 @@ function parseLsOptions(command: string): LsOptions {
         showHidden: false,
         longFormat: false,
         sortBy: 'name',
-        reverseSort: false
+        reverseSort: false,
+        humanReadable: false
     };
 
     // Extract options part (everything after 'ls' but before paths)
@@ -246,6 +249,9 @@ function parseLsOptions(command: string): LsOptions {
         }
         if (part === '-U' || part.includes('U')) {
             options.sortBy = 'none';  // Unsorted (directory order)
+        }
+        if (part === '--human-readable' || part.includes('h')) {
+            options.humanReadable = true;
         }
     }
 
@@ -300,7 +306,8 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
             showHidden: false,
             longFormat: false,
             sortBy: 'name',
-            reverseSort: false
+            reverseSort: false,
+            humanReadable: false
         };
     }
 
@@ -390,6 +397,19 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
             // Sort based on options
             let sorted = await this.sortEntries(filtered, dirPath);
 
+            // Calculate max name lengths for alignment (separate for files and dirs)
+            let maxDirNameLength = 0;
+            let maxFileNameLength = 0;
+            if (this.lsOptions.longFormat) {
+                for (const entry of sorted) {
+                    if (entry.isDirectory()) {
+                        maxDirNameLength = Math.max(maxDirNameLength, entry.name.length);
+                    } else {
+                        maxFileNameLength = Math.max(maxFileNameLength, entry.name.length);
+                    }
+                }
+            }
+
             // Map to RemoteFileItems with stat info for long format
             const items: RemoteFileItem[] = [];
             for (const entry of sorted) {
@@ -412,7 +432,9 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
                     isDir ? 'directory' : 'file',
                     isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
                     isCurrent,
-                    stat
+                    stat,
+                    this.lsOptions,
+                    isDir ? maxDirNameLength : maxFileNameLength
                 ));
             }
 
@@ -501,9 +523,18 @@ class RemoteFileItem extends vscode.TreeItem {
         public readonly type: 'file' | 'directory' | 'info' | 'current-dir-header',
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly isCurrent: boolean = false,
-        public readonly stat?: fs.Stats
+        public readonly stat?: fs.Stats,
+        public readonly lsOptions?: LsOptions,
+        public readonly maxNameLength?: number
     ) {
+        // Call super first with just the label - we'll modify this.label later if needed
         super(label, collapsibleState);
+
+        // Pad the label if we're in long format and have maxNameLength
+        if (lsOptions?.longFormat && maxNameLength) {
+            const padding = '\u00A0'.repeat(Math.max(0, maxNameLength - label.length));
+            this.label = label + padding;
+        }
 
         this.tooltip = fullPath;
         this.contextValue = type;
@@ -529,21 +560,31 @@ class RemoteFileItem extends vscode.TreeItem {
             // Highlight current directory
             if (isCurrent) {
                 this.description = 'Current';
-            } else if (stat) {
+            } else if (stat && lsOptions) {
                 // Show size and date for long format with padding for alignment
-                const sizeStr = this.formatSize(stat.size);
+                const sizeStr = lsOptions.humanReadable 
+                    ? this.formatSize(stat.size) 
+                    : stat.size.toString();
                 const dateStr = this.formatDate(stat.mtime);
-                this.description = `${this.padRight(sizeStr, 8)}${dateStr}`;
+                const paddedSize = this.padRight(sizeStr, lsOptions.humanReadable ? 8 : 12);
+                this.description = `${paddedSize}${dateStr}`;
             }
         } else if (type === 'file') {
             this.iconPath = new vscode.ThemeIcon('file');
             
             // Show file info for long format
-            if (stat) {
-                const sizeStr = this.formatSize(stat.size);
+            if (stat && lsOptions) {
+                const sizeStr = lsOptions.humanReadable 
+                    ? this.formatSize(stat.size) 
+                    : stat.size.toString();
                 const dateStr = this.formatDate(stat.mtime);
-                this.description = `${this.padRight(sizeStr, 8)}${dateStr}`;
-                this.tooltip = `${fullPath}\nSize: ${this.formatSize(stat.size)}\nModified: ${stat.mtime.toLocaleString()}`;
+                const paddedSize = this.padRight(sizeStr, lsOptions.humanReadable ? 8 : 12);
+                this.description = `${paddedSize}${dateStr}`;
+                
+                const displaySize = lsOptions.humanReadable 
+                    ? this.formatSize(stat.size) 
+                    : `${stat.size} bytes`;
+                this.tooltip = `${fullPath}\nSize: ${displaySize}\nModified: ${stat.mtime.toLocaleString()}`;
             }
         } else {
             this.iconPath = new vscode.ThemeIcon('info');
