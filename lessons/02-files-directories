@@ -4,7 +4,7 @@ Note: this document is markdown. Text is readable, but formatting is better in V
 
 # 02-files-directories
 
-
+**Command line Files and Directories (folders)**
 
 The part of the operating system responsible for managing files and directories
 is called the **file system**.
@@ -14,7 +14,11 @@ and directories (also called 'folders'),
 which hold files or other directories.
 
 Several commands are frequently used to create, inspect, rename, and delete files and directories.
-To start exploring them, we'll go to our open shell window.
+To start exploring them, we'll go to our TERMINAL pane.  It is the bottom pane of your VS Code window, and look like:
+
+![terminal pane screenshot](img/terminal-pane.png)
+
+Make sure <u>TERMINAL</u> is underlined. You can click to another tab (i.e. PROBLEMS, OUTPUT, ...), but make sure you get back to <u>TERMINAL</u>.
 
 First, let's look at the **prompt**. Your prompt will look like:
 
@@ -22,7 +26,9 @@ First, let's look at the **prompt**. Your prompt will look like:
 @ghuser ➜ /workspaces/terminal-sync-vscode (main) $ 
 ~~~
 
-This is more information than we'll use for beginner lessons. Let's simplify the prompt. 
+where "ghuser" is your github user name.  This is more information than we'll use for beginner lessons. Let's simplify the prompt. 
+
+<mark style="background-color: rgba(242, 255, 0, 1);">Simplify your prompt for lessons</mark>
 
 Copy and paste the following lines into your terminal window and hit RETURN
 
@@ -33,22 +39,26 @@ clear
 
 Your TERMINAL should now show only the dollar sign ($) on the top most line.  That is static (you can't delete it).
 
-~~~
-$ 
-~~~
+![clear prompt and cursor screenshot](img/prompt-cursor-screenshot.png)
 
-!!! Notice there is a rectangle that highlights your cursor location. !!!
+Breakdown of your terminal prompt:
+1. The circle is a VS Code thing, **ignore it**
+2. The '$' is a separator. Your typing will appear to the right
+3. The rectangle is the cursor. Your typing will insert into that position
 
 👉 Try it out.
 
 1. type some stuff in the terminal (note: you may have to click in the window first). E.g. some gibberish: "asdfasdf"
-2. move the cursor left and right with the arrow keys: ← →
+2. move the cursor left and right with the arrow keys: <kbd>←</kbd> <kbd>→</kbd>
 3. add text where the cursor is (still gibberish)
+
+
+![gibberish at prompt](img/gibberish.png)
 
 Notice how the dark square marks the insert location. **This is different from apps like Microsoft Word** that use a vertical line and insert after it.
 
 👉  Next: clear the gibberish using any of the following methods:
-* right arrow → all the way to the end of what you typed and delete all the way to the left until only the "$" is shown.
+* right arrow <kbd>→</kbd> all the way to the end of what you typed and delete all the way to the left until only the "$" is shown.
 * Type CTRL-E to immediately go to the end of what you typed (an awesome shortcut!) and delete left.
 * Type CTRL-C to "cancel" the current typing. A new line will appear below with a nice clean prompt.
 
@@ -65,43 +75,29 @@ $ pwd
 ~~~
 
 ~~~
-/workspaces/terminal-sync-vscode/lessons
+/workspaces/terminal-sync-vscode/
 ~~~
 
 Here,
-the computer's response is `/workspaces/shell-novice` because we are in a cloud environment. 
+the computer's response is `/workspaces/shell-novice`. This is particular to github codespaces. On a normal server, 
+you will be in your HOME directory (discussed later).
 
-<mark style="background-color: #CCFF00;">Should we keep on the home directory lesson?</mark>
-To understand what a 'home directory' is,
-let's have a look at how the file system as a whole is organized.  For the
-sake of this example, we'll be
-illustrating the filesystem on our scientist Nelle's computer.  After this
-illustration, you'll be learning commands to explore your own filesystem,
-which will be constructed in a similar way, but not be exactly identical.
-
-<mark style="background-color: #CCFF00;">NOTE: we could compare the codespace filesystem with home directories and mark new figures</mark>
-On Nelle's computer, the filesystem looks like this:
-
-![The file system is made up of a root directory that contains sub-directories
-titled bin, data, users, and tmp](../fig/filesystem.svg)
-
-At the top is the **root directory**
-that holds everything else.
+At the top is the **root directory** that holds everything else.
 We refer to it using a slash character, `/`, on its own;
-this character is the leading slash in `/Users/nelle`.
+this character is the leading slash in `/workspaces/terminal-sync-vscode/`.
 
 Inside that directory are several other directories:
 `bin` (which is where some built-in programs are stored),
-`data` (for miscellaneous data files),
-`Users` (where users' personal directories are located),
+`workspaces` (for this learning repository),
+`home` (where users' personal directories are located),
 `tmp` (for temporary files that don't need to be stored long-term),
 and so on.
 
-We know that our current working directory `/Users/nelle` is stored inside `/Users`
-because `/Users` is the first part of its name.
+We know that our current working directory `/workspaces/terminal-sync-vscode/` is stored inside `/workspaces`
+because "/workspaces" is the first part of its name.
 Similarly,
-we know that `/Users` is stored inside the root directory `/`
-because its name begins with `/`.
+we know that `/workspaces` is stored inside the root directory `/`
+because its name begins with "/".
 
 > ## Slashes
 >
@@ -109,39 +105,20 @@ because its name begins with `/`.
 > When it appears at the front of a file or directory name,
 > it refers to the root directory. When it appears *inside* a path,
 > it's just a separator.
-{: .callout}
 
-Underneath `/Users`,
-we find one directory for each user with an account on Nelle's machine,
-her colleagues *imhotep* and *larry*.
 
-![Like other directories, home directories are sub-directories underneath
-"/Users" like "/Users/imhotep", "/Users/larry" or
-"/Users/nelle"](../fig/home-directories.svg)
+Underneath `/workspaces`,
+we find directories and files for different purposes. These all contribute to making this codespace, but also contain our lessons.
 
-The user *imhotep*'s files are stored in `/Users/imhotep`,
-user *larry*'s in `/Users/larry`,
-and Nelle's in `/Users/nelle`. Nelle is the user in our
-examples here; therefore, we get `/Users/nelle` as our home directory.
-Typically, when you open a new command prompt, you will be in
-your home directory to start.
 
-Now let's learn the command that will let us see the contents of our
-own filesystem.  We can see what's in our home directory by running `ls`:
-<mark style="background-color: #CCFF00;">NOTE: this is off-topic for the codespace tutorial and might be confusing.</mark>
+Now let's learn the command that will help us explore our local directory.  
+We can see what's in our home directory by running `ls`:
+
 ~~~
 $ ls
+install-extension.sh  LICENSE       out           package-lock.json  src                                tsconfig.json
+lessons               node_modules  package.json  README.md          terminal-file-explorer-1.1.0.vsix
 ~~~
-{: .language-bash}
-<mark style="background-color: #CCFF00;">NOTE: Mac default home dir.</mark>
-~~~
-Applications Documents    Library      Music        Public
-Desktop      Downloads    Movies       Pictures
-~~~
-{: .output}
-
-(Again, your results may be slightly different depending on your operating
-system and how you have customized your filesystem.)
 
 `ls` prints the names of the files and directories in the current directory.
 We can make its output more comprehensible by using the `-F` **option**
@@ -158,16 +135,17 @@ directory.
 ~~~
 $ ls -F
 ~~~
-{: .language-bash}
+
 
 ~~~
-Applications/ Documents/    Library/      Music/        Public/
-Desktop/      Downloads/    Movies/       Pictures/
+install-extension.sh  LICENSE        out/          package-lock.json  src/                               tsconfig.json
+lessons/              node_modules/  package.json  README.md          terminal-file-explorer-1.1.0.vsix
 ~~~
-{: .output}
+
 
 Here,
-we can see that the home directory contains only **sub-directories**.
+we can see that the our directory contains **sub-directories** when `ls -F` 
+shows a trailing slash on the name (such as `out/`).
 Any names in the output that don't have a classification symbol
 are **files** in the current working directory.
 
@@ -176,7 +154,7 @@ are **files** in the current working directory.
 > If your screen gets too cluttered, you can clear your terminal using the
 > `clear` command. You can still access previous commands using <kbd>↑</kbd>
 > and <kbd>↓</kbd> to move line-by-line, or by scrolling in your terminal.
-{: .callout}
+
 
 ### Getting help
 
@@ -188,13 +166,13 @@ to use a command and what options it accepts ---
     ~~~
     $ ls --help
     ~~~
-    {: .language-bash}
+    
 
 2. We can read its manual with `man` (available on Linux and macOS):
     ~~~
     $ man ls
     ~~~
-    {: .language-bash}
+    
 
 We'll describe both ways next.
 
@@ -206,11 +184,6 @@ information on how to use the command or program.
 
 ~~~
 $ ls --help
-~~~
-{: .language-bash}
-
-<mark style="background-color: #CCFF00;">NOTE: luckily, this is the GNU coreutils ls usage message instead of the BSD ls that ships with Macs.</mark>
-~~~
 Usage: ls [OPTION]... [FILE]...
 List information about the FILEs (the current directory by default).
 Sort entries alphabetically if neither -cftuvSUX nor --sort is specified.
@@ -237,7 +210,6 @@ Mandatory arguments to long options are mandatory for short options, too.
   -F, --classify             append indicator (one of */=>@|) to entries
 ...        ...        ...
 ~~~
-{: .output}
 
 > ## Unsupported command-line options
 > If you try to use an option that is not supported, `ls` and other commands
@@ -245,15 +217,11 @@ Mandatory arguments to long options are mandatory for short options, too.
 >
 > ~~~
 > $ ls -j
-> ~~~
-> {: .language-bash}
->
-> ~~~
 > ls: invalid option -- 'j'
 > Try 'ls --help' for more information.
 > ~~~
-> {: .error}
-{: .callout}
+> 
+>
 
 #### The `man` command
 
@@ -261,7 +229,6 @@ The other way to learn about `ls` is to type
 ~~~
 $ man ls
 ~~~
-{: .language-bash}
 
 This command will turn your terminal into a page with a description
 of the `ls` command and its options.
@@ -288,7 +255,7 @@ To **quit** the `man` pages, press <kbd>Q</kbd>.
 > [manuals](http://www.gnu.org/manual/manual.html) including the
 > [core GNU utilities](http://www.gnu.org/software/coreutils/manual/coreutils.html),
 > which covers many commands introduced within this lesson.
-{: .callout}
+
 
 > ## Exploring More `ls` Options
 >
@@ -305,8 +272,7 @@ To **quit** the `man` pages, press <kbd>Q</kbd>.
 > > and the time of its last modification. If you use both the `-h` option and the `-l` option,
 > > this makes the file size '**h**uman readable', i.e. displaying something like `5.3K`
 > > instead of `5369`.
-> {: .solution}
-{: .challenge}
+> 
 
 > ## Listing in Reverse Chronological Order
 >
@@ -322,8 +288,7 @@ To **quit** the `man` pages, press <kbd>Q</kbd>.
 > > The most recently changed file is listed last when using `-rt`. This
 > > can be very useful for finding your most recent edits or checking to
 > > see if a new output file was written.
-> {: .solution}
-{: .challenge}
+> 
 
 ### Exploring Other Directories
 
@@ -340,12 +305,12 @@ we want a listing of something other than our current working directory:
 ~~~
 $ ls -F Desktop
 ~~~
-{: .language-bash}
+
 
 ~~~
 shell-lesson-data/
 ~~~
-{: .output}
+
 
 Note that if a directory named `Desktop` does not exist in your current working directory,
 this command will return an error. Typically, a `Desktop` directory exists in your
@@ -375,12 +340,12 @@ a directory name to `ls`:
 ~~~
 $ ls -F Desktop/shell-lesson-data
 ~~~
-{: .language-bash}
+
 
 ~~~
 exercise-data/  north-pacific-gyre/
 ~~~
-{: .output}
+
 
 Second, we can actually change our location to a different directory, so
 we are no longer located in
@@ -405,7 +370,7 @@ $ cd Desktop
 $ cd shell-lesson-data
 $ cd exercise-data
 ~~~
-{: .language-bash}
+
 
 These commands will move us from our home directory into our Desktop directory, then into
 the `shell-lesson-data` directory, then into the `exercise-data` directory.
@@ -421,22 +386,22 @@ because that's where we now are:
 ~~~
 $ pwd
 ~~~
-{: .language-bash}
+
 
 ~~~
 /Users/nelle/Desktop/shell-lesson-data/exercise-data
 ~~~
-{: .output}
+
 
 ~~~
 $ ls -F
 ~~~
-{: .language-bash}
+
 
 ~~~
 animal-counts/  creatures/  numbers.txt  alkanes/  writing/
 ~~~
-{: .output}
+
 
 We now know how to go down the directory tree (i.e. how to go into a subdirectory),
 but how do we go up (i.e. how do we leave a directory and go into its parent directory)?
@@ -445,12 +410,12 @@ We might try the following:
 ~~~
 $ cd shell-lesson-data
 ~~~
-{: .language-bash}
+
 
 ~~~
 -bash: cd: shell-lesson-data: No such file or directory
 ~~~
-{: .error}
+
 
 But we get an error! Why is this?
 
@@ -464,7 +429,7 @@ There is a shortcut in the shell to move up one directory level. It works as fol
 ~~~
 $ cd ..
 ~~~
-{: .language-bash}
+
 
 `..` is a special directory name meaning
 "the directory containing this one",
@@ -476,12 +441,12 @@ if we run `pwd` after running `cd ..`, we're back in `/Users/nelle/Desktop/shell
 ~~~
 $ pwd
 ~~~
-{: .language-bash}
+
 
 ~~~
 /Users/nelle/Desktop/shell-lesson-data
 ~~~
-{: .output}
+
 
 The special directory `..` doesn't usually show up when we run `ls`. If we want
 to display it, we can add the `-a` option to `ls -F`:
@@ -489,12 +454,12 @@ to display it, we can add the `-a` option to `ls -F`:
 ~~~
 $ ls -F -a
 ~~~
-{: .language-bash}
+
 
 ~~~
 ./  ../  exercise-data/  north-pacific-gyre/
 ~~~
-{: .output}
+
 
 `-a` stands for 'show all' (including hidden files);
 it forces `ls` to show us file and directory names that begin with `.`,
@@ -518,7 +483,7 @@ equivalent to `ls -Fa`.
 > different programs on your computer. The prefix `.` is used to prevent these
 > configuration files from cluttering the terminal when a standard `ls` command
 > is used.
-{: .callout}
+
 
 These three commands are the basic commands for navigating the filesystem on your computer:
 `pwd`, `ls`, and `cd`. Let's explore some variations on those commands. What happens
@@ -528,19 +493,19 @@ a directory?
 ~~~
 $ cd
 ~~~
-{: .language-bash}
+
 
 How can you check what happened? `pwd` gives us the answer!
 
 ~~~
 $ pwd
 ~~~
-{: .language-bash}
+
 
 ~~~
 /Users/nelle
 ~~~
-{: .output}
+
 
 It turns out that `cd` without an argument will return you to your home directory,
 which is great if you've got lost in your own filesystem.
@@ -552,7 +517,7 @@ to move to `exercise-data` in one step:
 ~~~
 $ cd Desktop/shell-lesson-data/exercise-data
 ~~~
-{: .language-bash}
+
 
 Check that we've moved to the right place by running `pwd` and `ls -F`.
 
@@ -579,17 +544,17 @@ to move to `shell-lesson-data`.
 ~~~
 $ pwd
 ~~~
-{: .language-bash}
+
 
 ~~~
 /Users/nelle/Desktop/shell-lesson-data/exercise-data
 ~~~
-{: .output}
+
 
 ~~~
 $ cd /Users/nelle/Desktop/shell-lesson-data
 ~~~
-{: .language-bash}
+
 
 Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 
@@ -616,22 +581,22 @@ Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 > ~~~
 > $ cd ~/Desktop/shell-lesson-data
 > ~~~
-> {: .language-bash}
+
 >
 > Then `cd` into the `exercise-data/creatures` directory
 > ~~~
 > $ cd exercise-data/creatures
 > ~~~
-> {: .language-bash}
+
 >
 > Now if you run
 > ~~~
 > $ cd -
 > ~~~
-> {: .language-bash}
+
 > you'll see you're back in `~/Desktop/shell-lesson-data`.
 > Run `cd -` again and you're back in `~/Desktop/shell-lesson-data/exercise-data/creatures`
-{: .callout}
+
 
 > ## Absolute vs Relative Paths
 >
@@ -660,8 +625,7 @@ Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 > > 7. Yes: unnecessarily complicated, but correct.
 > > 8. Yes: shortcut to go back to the user's home directory.
 > > 9. Yes: goes up one level.
-> {: .solution}
-{: .challenge}
+> 
 
 > ## Relative Path Resolution
 >
@@ -685,9 +649,7 @@ directories "backup" and "thing"; "/Users/backup" contains "original",
 > >    but with `..`, we asked for one level further up.
 > > 3. No: see previous explanation.
 > > 4. Yes: `../backup/` refers to `/Users/backup/`.
-> {: .solution}
-{: .challenge}
-
+>
 > ## `ls` Reading Comprehension
 >
 > Using the filesystem diagram below,
@@ -698,7 +660,7 @@ directories "backup" and "thing"; "/Users/backup" contains "original",
 > ~~~
 > pnas_sub/ pnas_final/ original/
 > ~~~
-> {: .output}
+>
 >
 > ![A directory tree below the Users directory where "/Users" contains the
 directories "backup" and "thing"; "/Users/backup" contains "original",
@@ -715,8 +677,8 @@ directories "backup" and "thing"; "/Users/backup" contains "original",
 > >  2. Yes: `ls` without directory argument lists files and directories
 > >     in the current directory.
 > >  3. Yes: uses the absolute path explicitly.
-> {: .solution}
-{: .challenge}
+>
+
 
 
 ## General Syntax of a Shell Command
@@ -729,7 +691,6 @@ which we will dissect into its component parts:
 ~~~
 $ ls -F /
 ~~~
-{: .language-bash}
 
 ![General syntax of a shell command](../fig/shell_command_syntax.svg)
 
@@ -759,14 +720,10 @@ while `ls -S` will sort the files and directories by size, as shown below:
 ~~~
 $ cd /workspaces/shell-novice/shell-lesson-data
 $ ls -s exercise-data
-~~~
-{: .language-bash}
-
-~~~
 total 28
  4 animal-counts   4 creatures  12 numbers.txt   4 alkanes   4 writing
 ~~~
-{: .output}
+
 
 Note that the sizes returned by `ls -s` are in *blocks*. 
 As these are defined differently for different operating systems,
@@ -774,13 +731,9 @@ you may not obtain the same figures as in the example.
 
 ~~~
 $ ls -S exercise-data
-~~~
-{: .language-bash}
-
-~~~
 animal-counts  creatures  alkanes  writing  numbers.txt
 ~~~
-{: .output}
+
 
 Putting all that together, our command `ls -F /` above gives us a listing
 of files and directories in the root directory `/`.
@@ -791,14 +744,13 @@ An example of the output you might get from the above command is given below:
 ~~~
 $ ls -F /
 ~~~
-{: .language-bash}
+
 
 ~~~
 Applications/         System/
 Library/              Users/
 Network/              Volumes/
 ~~~
-{: .output}
 
 
 ### Nelle's Pipeline: Organizing Files
@@ -829,7 +781,7 @@ Nelle can see what files she has using the command:
 ~~~
 $ ls north-pacific-gyre/
 ~~~
-{: .language-bash}
+
 
 This command is a lot to type,
 but she can let the shell do most of the work through what is called **tab completion**.
@@ -838,7 +790,7 @@ If she types:
 ~~~
 $ ls nor
 ~~~
-{: .language-bash}
+
 
 and then presses <kbd>Tab</kbd> (the tab key on her keyboard),
 the shell automatically completes the directory name for her:
@@ -846,7 +798,7 @@ the shell automatically completes the directory name for her:
 ~~~
 $ ls north-pacific-gyre/
 ~~~
-{: .language-bash}
+
 
 Pressing <kbd>Tab</kbd> again does nothing,
 since there are multiple possibilities;
@@ -859,14 +811,14 @@ the first three characters 'goo'.
 ~~~
 $ ls north-pacific-gyre/goo
 ~~~
-{: .language-bash}
+
 
 To see all of those files, she can press <kbd>Tab</kbd> twice more.
 ~~~
 ls north-pacific-gyre/goo
 goodiff.sh   goostats.sh
 ~~~
-{: .language-bash}
+
 
 This is called **tab completion**,
 and we will see it in many other tools as we go on.
