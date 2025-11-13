@@ -4,7 +4,6 @@
 // Main extension file for Terminal-Synced File Browser
 // Enhanced to show files only after 'ls' command with GNU ls option support
 
-
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -20,7 +19,8 @@ let lsOptions: LsOptions = {
     longFormat: false,
     sortBy: 'name',
     reverseSort: false,
-    humanReadable: false
+    humanReadable: false,
+    classify: false
 };
 
 interface LsOptions {
@@ -29,6 +29,7 @@ interface LsOptions {
     sortBy: 'name' | 'time' | 'size' | 'none';  // -t, -S, -U
     reverseSort: boolean;     // -r
     humanReadable: boolean;   // -h
+    classify: boolean;        // -F (append indicator to entries)
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -85,6 +86,12 @@ export function activate(context: vscode.ExtensionContext) {
                         shouldShowFiles = false;
                         remoteExplorer.updateCurrentPath(targetDir, false, lsOptions);
                         updateStatusBar(targetDir);
+                        
+                        // Clear the webview table
+                        if (lsTableViewProvider) {
+                            lsTableViewProvider.clearTable(targetDir);
+                        }
+                        
                         vscode.window.setStatusBarMessage(`Dir: ${path.basename(targetDir)}`, 2000);
                     } else {
                         // Couldn't parse or doesn't exist - use terminal's cwd if available
@@ -231,7 +238,8 @@ function parseLsOptions(command: string): LsOptions {
         longFormat: false,
         sortBy: 'name',
         reverseSort: false,
-        humanReadable: false
+        humanReadable: false,
+        classify: false
     };
 
     // Extract options part (everything after 'ls' but before paths)
@@ -264,6 +272,9 @@ function parseLsOptions(command: string): LsOptions {
         }
         if (part === '--human-readable' || part.includes('h')) {
             options.humanReadable = true;
+        }
+        if (part === '--classify' || part === '-F' || part.includes('F')) {
+            options.classify = true;
         }
     }
 
@@ -319,7 +330,8 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
             longFormat: false,
             sortBy: 'name',
             reverseSort: false,
-            humanReadable: false
+            humanReadable: false,
+            classify: false
         };
     }
 
@@ -759,6 +771,12 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
         }
     }
 
+    public clearTable(directory: string) {
+        if (this._view) {
+            this._view.webview.html = this._getWaitingHtml(directory);
+        }
+    }
+
     private _getInitialHtml(): string {
         return `<!DOCTYPE html>
 <html lang="en">
@@ -784,6 +802,53 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
 <body>
     <div class="waiting">
         <p>Run <code>ls</code> in the terminal to view directory contents</p>
+    </div>
+</body>
+</html>`;
+    }
+
+    private _getWaitingHtml(directory: string): string {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LS Table</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+        }
+        .header {
+            padding: 8px 10px;
+            background-color: var(--vscode-sideBarSectionHeader-background);
+            border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .directory-path {
+            color: var(--vscode-terminal-ansiGreen);
+            font-size: 12px;
+        }
+        .waiting {
+            color: var(--vscode-descriptionForeground);
+            font-style: italic;
+            padding: 40px 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span class="directory-path">📂 ${directory}</span>
+    </div>
+    <div class="waiting">
+        <p>Run <code>ls</code> to view directory contents</p>
     </div>
 </body>
 </html>`;
@@ -820,22 +885,39 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
             }
         };
 
-        const dirName = path.basename(directory) || directory;
-        
+        // Helper to get -F classify indicator
+        const getClassifyIndicator = (file: FileData): string => {
+            if (!options.classify) return '';
+            if (file.isDir) return '/';
+            // Could add more indicators: * for executable, @ for symlink, etc.
+            return '';
+        };
+
         const tableRows = files.map(file => {
             const icon = file.isDir ? '📁' : '📄';
             const className = file.isDir ? 'directory' : 'file';
             const action = file.isDir ? 'changeDirectory' : 'openFile';
             const fullPath = path.join(directory, file.name);
+            const displayName = file.name + getClassifyIndicator(file);
             
-            return `
-                <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
-                    <td class="icon">${icon}</td>
-                    <td class="name">${file.name}</td>
-                    <td class="size">${formatSize(file.size)}</td>
-                    <td class="date">${formatDate(file.mtime)}</td>
-                </tr>
-            `;
+            // Conditionally include size and date columns only with -l flag
+            if (options.longFormat) {
+                return `
+                    <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                        <td class="icon">${icon}</td>
+                        <td class="name">${displayName}</td>
+                        <td class="size">${formatSize(file.size)}</td>
+                        <td class="date">${formatDate(file.mtime)}</td>
+                    </tr>
+                `;
+            } else {
+                return `
+                    <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                        <td class="icon">${icon}</td>
+                        <td class="name">${displayName}</td>
+                    </tr>
+                `;
+            }
         }).join('');
 
         return `<!DOCTYPE html>
@@ -864,6 +946,7 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
         }
         .directory-path {
             color: var(--vscode-terminal-ansiGreen);
+            font-size: 12px;
         }
         table {
             width: 100%;
@@ -931,19 +1014,19 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
 </head>
 <body>
     <div class="header">
-        <span class="directory-path">📂 ${dirName}</span>
+        <span class="directory-path">📂 ${directory}</span>
     </div>
     <table>
         <thead>
             <tr>
                 <th class="icon"></th>
                 <th class="name">Name</th>
-                <th class="size">Size</th>
-                <th class="date">Modified</th>
+                ${options.longFormat ? '<th class="size">Size</th>' : ''}
+                ${options.longFormat ? '<th class="date">Modified</th>' : ''}
             </tr>
         </thead>
         <tbody>
-            ${tableRows || '<tr><td colspan="4" class="empty">No files to display</td></tr>'}
+            ${tableRows || `<tr><td colspan="${options.longFormat ? '4' : '2'}" class="empty">No files to display</td></tr>`}
         </tbody>
     </table>
     <script>
