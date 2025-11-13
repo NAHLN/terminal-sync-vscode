@@ -495,10 +495,8 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
         let sorted: fs.Dirent[];
 
         if (this.lsOptions.sortBy === 'name') {
-            // Sort by name, directories first
+            // Strictly alphabetical - no directories first
             sorted = entries.sort((a, b) => {
-                if (a.isDirectory() && !b.isDirectory()) return -1;
-                if (!a.isDirectory() && b.isDirectory()) return 1;
                 return a.name.localeCompare(b.name);
             });
         } else if (this.lsOptions.sortBy === 'time') {
@@ -700,9 +698,7 @@ async function updateLsTableView() {
             if (lsOptions.sortBy === 'none') {
                 return 0;
             } else if (lsOptions.sortBy === 'name') {
-                // Directories first, then by name
-                if (a.isDir && !b.isDir) return -1;
-                if (!a.isDir && b.isDir) return 1;
+                // Strictly alphabetical - no directories first
                 return a.name.localeCompare(b.name);
             } else if (lsOptions.sortBy === 'time') {
                 return b.mtime.getTime() - a.mtime.getTime();
@@ -899,12 +895,13 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
             const action = file.isDir ? 'changeDirectory' : 'openFile';
             const fullPath = path.join(directory, file.name);
             const displayName = file.name + getClassifyIndicator(file);
+            const showIcon = options.longFormat || options.classify;
             
             // Conditionally include size and date columns only with -l flag
             if (options.longFormat) {
                 return `
                     <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
-                        <td class="icon">${icon}</td>
+                        ${showIcon ? `<td class="icon">${icon}</td>` : ''}
                         <td class="name">${displayName}</td>
                         <td class="size">${formatSize(file.size)}</td>
                         <td class="date">${formatDate(file.mtime)}</td>
@@ -913,7 +910,7 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
             } else {
                 return `
                     <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
-                        <td class="icon">${icon}</td>
+                        ${showIcon ? `<td class="icon">${icon}</td>` : ''}
                         <td class="name">${displayName}</td>
                     </tr>
                 `;
@@ -1019,14 +1016,14 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
     <table>
         <thead>
             <tr>
-                <th class="icon"></th>
+                ${options.longFormat || options.classify ? '<th class="icon"></th>' : ''}
                 <th class="name">Name</th>
                 ${options.longFormat ? '<th class="size">Size</th>' : ''}
                 ${options.longFormat ? '<th class="date">Modified</th>' : ''}
             </tr>
         </thead>
         <tbody>
-            ${tableRows || `<tr><td colspan="${options.longFormat ? '4' : '2'}" class="empty">No files to display</td></tr>`}
+            ${tableRows || `<tr><td colspan="${(options.longFormat || options.classify ? 1 : 0) + 1 + (options.longFormat ? 2 : 0)}" class="empty">No files to display</td></tr>`}
         </tbody>
     </table>
     <script>
