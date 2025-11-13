@@ -4,6 +4,7 @@
 // Main extension file for Terminal-Synced File Browser
 // Enhanced to show files only after 'ls' command with GNU ls option support
 
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';

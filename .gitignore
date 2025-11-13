@@ -1,7 +1,6 @@
 # Compiled output
 out/
 dist/
-*.vsix
 
 node_modules/
 *.swp

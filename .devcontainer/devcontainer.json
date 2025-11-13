@@ -1,33 +1,27 @@
 {
   "name": "Terminal File Explorer Development",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "20"
-    }
-  },
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
   
   "customizations": {
     "vscode": {
-      "remoteUser": "vscode",
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ],
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "terminal.integrated.shellIntegration.enabled": true,
-        "workbench.startupEditor": "none"
+        "terminal.integrated.defaultProfile.linux": "bash"
       }
     }
   },
-  "containerEnv": {
-    "PS1": "[\\u@\\h \\w]\\$ "
+
+  "postStartCommand": "bash install-extension.sh",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
   },
-  
-  
-  "postStartCommand": "cd ~",
-  "postAttachCommand": {
-    "npm": "npm install && npm run compile",
-    "directorySetup": "mkdir -p ~/practice/data ~/practice/projects ~/practice/documents ~/practice/data/backup ~/practice/data/raw ~/practice/data/processed && echo 'Tutorial environment ready!'",
-    "openLesson": "code --reuse-window lessons/01-introduction.md && echo '💡 Tip: Press Ctrl+Shift+V to preview the markdown lesson'"
-  },
+
   "remoteUser": "vscode"
 }
