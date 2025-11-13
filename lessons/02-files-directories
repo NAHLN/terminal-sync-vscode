@@ -43,12 +43,35 @@ First, let's look at the **prompt**. Your prompt will look like:
 @ghuser ➜ /workspaces/terminal-sync-vscode (main) $ 
 ~~~
 
+This is more information than we'll use for beginner lessons. Let's simplify the prompt. 
 
-
+Copy and paste the following lines into your terminal window and hit RETURN
 
 ~~~
-@meekrob ➜ ~ $
+PS1="$ "
+clear
 ~~~
+
+Your TERMINAL should now show only the dollar sign ($) on the top most line.  That is static (you can't delete it).
+
+~~~
+$ 
+~~~
+
+!!! Notice there is a rectangle that highlights your cursor location. !!!
+
+👉 Try it out.
+
+1. type some stuff in the terminal (note: you may have to click in the window first). E.g. some gibberish: "asdfasdf"
+2. move the cursor left and right with the arrow keys: ← →
+3. add text where the cursor is (still gibberish)
+
+Notice how the dark square marks the insert location. **This is different from apps like Microsoft Word** that use a vertical line and insert after it.
+
+👉  Next: clear the gibberish using any of the following methods:
+* right arrow → all the way to the end of what you typed and delete all the way to the left until only the "$" is shown.
+* Type CTRL-E to immediately go to the end of what you typed (an awesome shortcut!) and delete left.
+* Type CTRL-C to "cancel" the current typing. A new line will appear below with a nice clean prompt.
 
 
 Next, let's find out where we are by running a command called `pwd`
@@ -61,19 +84,14 @@ a command is important. `pwd` shows you where you are:
 ~~~
 $ pwd
 ~~~
-{: .language-bash}
-
-<mark style="background-color: #CCFF00;">This output is going to be different than a user's home directory (such as on a Mac).</mark>
 
 ~~~
-/workspaces/shell-novice
+/workspaces/terminal-sync-vscode/lessons
 ~~~
-{: .output}
 
 Here,
 the computer's response is `/workspaces/shell-novice` because we are in a cloud environment. 
 
-<mark style="background-color: #CCFF00;">NOTE: This has been adapted and expanded.</mark> 
 
 > ## Home Directory Variation
 >
