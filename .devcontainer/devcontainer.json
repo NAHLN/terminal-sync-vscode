@@ -14,14 +14,14 @@
     }
   },
 
-  "postStartCommand": "bash install-extension.sh",
-
+  "postCreateCommand": "npm install && npm run compile",
+  "postAttachCommand": "bash .devcontainer/post-attach.sh",
+  
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
-    },
-    "ghcr.io/devcontainers/features/git:1": {}
+    }
   },
 
-  "remoteUser": "vscode"
+  "remoteUser": "node"
 }
