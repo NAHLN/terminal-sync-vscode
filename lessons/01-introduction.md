@@ -13,6 +13,9 @@
 
 ![codespace screenshot](img/codespace_pulldown_screenshot.png)
 
+### Launch the Codespace!
+
+![codespace screenshot](img/VS_Code_in_web_screenshot.png)
 
 
 ## Github codespaces: launch the learning environment
