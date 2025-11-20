@@ -9,6 +9,9 @@
 ![green button screenshot](img/github_green_button_screenshot.png)
 
 3. Click on that button for the pulldown box. If you are logged in, you will see a "CODESPACES" tab.
+4. Find <b>obscure doodle</b> and click.
+
+
 
 ## Github codespaces: launch the learning environment
 
