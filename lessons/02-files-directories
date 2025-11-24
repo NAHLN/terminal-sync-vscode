@@ -292,35 +292,31 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 
 ### Exploring Other Directories
 
+<mark style="background-color: rgba(255, 0, 0, 1);">THIS NEEDS TO BE ADAPTED BECAUSE THERE'S NO "Desktop"</mark>
+
+<mark style="background-color: rgba(255, 0, 0, 1);">THE shell-lesson-data EXERCISE IS DUPLICATED</mark>
 
 Not only can we use `ls` on the current working directory,
 but we can use it to list the contents of a different directory.
-Let's take a look at our `Desktop` directory by running `ls -F Desktop`,
+Let's take a look at our `shell-lesson-data` directory by running `ls -F shell-lesson-data`,
 i.e.,
-the command `ls` with the `-F` **option** and the [**argument**][Arguments]  `Desktop`.
-The argument `Desktop` tells `ls` that
+the command `ls` with the `-F` **option** and the [**argument**][Arguments]  `shell-lesson-data`.
+The argument `shell-lesson-data` tells `ls` that
 we want a listing of something other than our current working directory:
 
 ~~~
-$ ls -F Desktop
+$ ls -F shell-lesson-data
 ~~~
 
 
 ~~~
-shell-lesson-data/
+exercise-data/  north-pacific-gyre/
 ~~~
 
 
-Note that if a directory named `Desktop` does not exist in your current working directory,
-this command will return an error. Typically, a `Desktop` directory exists in your
+Note that if a directory named `shell-lesson-data` does not exist in your current working directory,
+this command will return an error. Typically, a `shell-lesson-data` directory exists in your
 home directory, which we assume is the current working directory of your bash shell.
-
-Your output should be a list of all the files and sub-directories in your
-Desktop directory, including the `shell-lesson-data` directory you downloaded at
-the [setup for this lesson]({{ page.root }}{% link setup.md %}).
-On many systems,
-the command line Desktop directory is the same as your GUI Desktop.
-Take a look at your Desktop to confirm that your output is accurate.
 
 As you may now see, the bash shell strongly depends on
 your files being organized in a hierarchical file system.
@@ -336,7 +332,7 @@ First, using the same strategy as before, we can look at its contents by passing
 a directory name to `ls`:
 
 ~~~
-$ ls -F Desktop/shell-lesson-data
+$ ls -F shell-lesson-data
 ~~~
 
 
@@ -364,7 +360,6 @@ Let's say we want to move into the `exercise-data` directory we saw above. We ca
 use the following series of commands to get there:
 
 ~~~
-$ cd Desktop
 $ cd shell-lesson-data
 $ cd exercise-data
 ~~~
@@ -375,10 +370,10 @@ the `shell-lesson-data` directory, then into the `exercise-data` directory.
 You will notice that `cd` doesn't print anything. This is normal.
 Many shell commands will not output anything to the screen when successfully executed.
 But if we run `pwd` after it, we can see that we are now
-in `/Users/nelle/Desktop/shell-lesson-data/exercise-data`.
+in `/workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data`.
 
 If we run `ls -F` without arguments now,
-it lists the contents of `/Users/nelle/Desktop/shell-lesson-data/exercise-data`,
+it lists the contents of `/workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data`,
 because that's where we now are:
 
 ~~~
@@ -387,7 +382,7 @@ $ pwd
 
 
 ~~~
-/Users/nelle/Desktop/shell-lesson-data/exercise-data
+/workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data
 ~~~
 
 
@@ -434,7 +429,7 @@ $ cd ..
 or more succinctly,
 the **parent** of the current directory.
 Sure enough,
-if we run `pwd` after running `cd ..`, we're back in `/Users/nelle/Desktop/shell-lesson-data`:
+if we run `pwd` after running `cd ..`, we're back in `/workspaces/terminal-sync-vscode/shell-lesson-data`:
 
 ~~~
 $ pwd
@@ -442,7 +437,7 @@ $ pwd
 
 
 ~~~
-/Users/nelle/Desktop/shell-lesson-data
+/workspaces/terminal-sync-vscode/shell-lesson-data/
 ~~~
 
 
@@ -461,7 +456,7 @@ $ ls -F -a
 
 `-a` stands for 'show all' (including hidden files);
 it forces `ls` to show us file and directory names that begin with `.`,
-such as `..` (which, if we're in `/Users/nelle`, refers to the `/Users` directory).
+such as `..` (which, if we're in `/workspaces/terminal-sync-vscode`, refers to the `/workspaces` directory).
 As you can see,
 it also displays another special directory that's just called `.`,
 which means 'the current working directory'.
@@ -475,15 +470,15 @@ equivalent to `ls -Fa`.
 > ## Other Hidden Files
 >
 > In addition to the hidden directories `..` and `.`, you may also see a file
-> called `.bash_profile`. This file usually contains shell configuration
-> settings. You may also see other files and directories beginning
+> called `.gitignore`. This file contains a list of file types excluded from the 
+> repository. You may also see other files and directories beginning
 > with `.`. These are usually files and directories that are used to configure
 > different programs on your computer. The prefix `.` is used to prevent these
 > configuration files from cluttering the terminal when a standard `ls` command
 > is used.
 
 
-These three commands are the basic commands for navigating the filesystem on your computer:
+These three commands are the basic commands for navigating the filesystem on your Linux/Unix:
 `pwd`, `ls`, and `cd`. Let's explore some variations on those commands. What happens
 if you type `cd` on its own, without giving
 a directory?
@@ -501,19 +496,20 @@ $ pwd
 
 
 ~~~
-/Users/nelle
+/home/node
 ~~~
 
 
 It turns out that `cd` without an argument will return you to your home directory,
-which is great if you've got lost in your own filesystem.
+which is great if you've got lost in your own filesystem.  **On github workspaces, we don't use
+the home directory**, but on an HPC, this is where your configuration files, and sometime data, reside.
 
 Let's try returning to the `exercise-data` directory from before. Last time, we used
 three commands, but we can actually string together the list of directories
 to move to `exercise-data` in one step:
 
 ~~~
-$ cd Desktop/shell-lesson-data/exercise-data
+$ cd /workspaces/shell-lesson-data/exercise-data
 ~~~
 
 
@@ -545,40 +541,12 @@ $ pwd
 
 
 ~~~
-/Users/nelle/Desktop/shell-lesson-data/exercise-data
-~~~
-
-
-~~~
-$ cd /Users/nelle/Desktop/shell-lesson-data
+/workspaces/terminal-sync-vscode/shell-lesson-data
 ~~~
 
 
 Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 
-> ## Two More Shortcuts
->
-> The shell interprets a tilde (`~`) character at the start of a path to
-> mean "the current user's home directory". For example, if Nelle's home
-> directory is `/Users/nelle`, then `~/data` is equivalent to
-> `/Users/nelle/data`. This only works if it is the first character in the
-> path; `here/there/~/elsewhere` is *not* `here/there/Users/nelle/elsewhere`.
->
-> Another shortcut is the `-` (dash) character. `cd` will translate `-` into
-> *the previous directory I was in*, which is faster than having to remember,
-> then type, the full path.  This is a *very* efficient way of moving
-> *back and forth between two directories* -- i.e. if you execute `cd -` twice,
-> you end up back in the starting directory.
->
-> The difference between `cd ..` and `cd -` is
-> that the former brings you *up*, while the latter brings you *back*.
->
-> ----
-> Try it!
-> First navigate to `~/Desktop/shell-lesson-data` (you should already be there).
-> ~~~
-> $ cd ~/Desktop/shell-lesson-data
-> ~~~
 
 >
 > Then `cd` into the `exercise-data/creatures` directory
@@ -592,8 +560,8 @@ Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 > $ cd -
 > ~~~
 
-> you'll see you're back in `~/Desktop/shell-lesson-data`.
-> Run `cd -` again and you're back in `~/Desktop/shell-lesson-data/exercise-data/creatures`
+> you'll see you're back in `/workspaces/terminal-sync-vscode/shell-lesson-data`.
+> Run `cd -` again and you're back in `/workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data/creatures`
 
 
 > ## Absolute vs Relative Paths
