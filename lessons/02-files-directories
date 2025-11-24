@@ -116,8 +116,8 @@ We can see what's in our home directory by running `ls`:
 
 ~~~
 $ ls
-install-extension.sh  LICENSE       out           package-lock.json  src                                tsconfig.json
-lessons               node_modules  package.json  README.md          terminal-file-explorer-1.1.0.vsix
+install-extension.sh  LICENSE       out           package-lock.json  shell-lesson-data  terminal-file-explorer-1.1.0.vsix
+lessons               node_modules  package.json  README.md          src                tsconfig.json
 ~~~
 
 `ls` prints the names of the files and directories in the current directory.
@@ -138,8 +138,8 @@ $ ls -F
 
 
 ~~~
-install-extension.sh  LICENSE        out/          package-lock.json  src/                               tsconfig.json
-lessons/              node_modules/  package.json  README.md          terminal-file-explorer-1.1.0.vsix
+install-extension.sh  LICENSE        out/          package-lock.json  shell-lesson-data/  terminal-file-explorer-1.1.0.vsix
+lessons/              node_modules/  package.json  README.md          src/                tsconfig.json
 ~~~
 
 
