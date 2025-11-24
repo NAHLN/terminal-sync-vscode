@@ -502,7 +502,7 @@ $ pwd
 
 It turns out that `cd` without an argument will return you to your home directory,
 which is great if you've got lost in your own filesystem.  **On github workspaces, we don't use
-the home directory**, but on an HPC, this is where your configuration files, and sometime data, reside.
+the home directory**, but on an HPC this is where your configuration files, and sometimes data, reside.
 
 Let's try returning to the `exercise-data` directory from before. Last time, we used
 three commands, but we can actually string together the list of directories
@@ -564,8 +564,11 @@ Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 > Run `cd -` again and you're back in `/workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data/creatures`
 
 
-> ## Absolute vs Relative Paths
+
+
+> ## <mark style="background-color: rgba(0, 255, 85, 0.61);">Challenge: Absolute vs Relative Paths</mark> 
 >
+<mark style="background-color: rgba(255, 0, 0, 1);">Make this workspaces-specific</mark>
 > Starting from `/Users/amanda/data`,
 > which of the following commands could Amanda use to navigate to her home directory,
 > which is `/Users/amanda`?
@@ -593,9 +596,9 @@ Run `pwd` and `ls -F` to ensure that we're in the directory we expect.
 > > 9. Yes: goes up one level.
 > 
 
-> ## Relative Path Resolution
+> ## <mark style="background-color: rgba(0, 255, 85, 0.61);">Challenge: Relative Path Resolution</mark>
 >
-> Using the filesystem diagram below, if `pwd` displays `/Users/thing`,
+> Using the filesystem diagram below, if `pwd` displays `/data/thing`,
 > what will `ls -F ../backup` display?
 >
 > 1.  `../backup: No such file or directory`
