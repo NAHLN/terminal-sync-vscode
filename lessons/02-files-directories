@@ -292,7 +292,6 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 
 ### Exploring Other Directories
 
-<mark style="background-color: #CCFF00;">REPLACE: with a codespace example</mark>
 
 Not only can we use `ls` on the current working directory,
 but we can use it to list the contents of a different directory.
@@ -329,7 +328,6 @@ Organizing things hierarchically in this way helps us keep track of our work:
 it's possible to put hundreds of files in our home directory,
 just as it's possible to pile hundreds of printed papers on our desk,
 but it's a self-defeating strategy.
-<mark style="background-color: #CCFF00;">NOTE: this needs to be completely rewritten for the codespace and repo file/dir contents</mark>
 
 Now that we know the `shell-lesson-data` directory is located in our Desktop directory, we
 can do two things.
