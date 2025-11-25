@@ -26,13 +26,14 @@ First, let's look at the **prompt**. Your prompt will look like:
 @ghuser ➜ /workspaces/terminal-sync-vscode (main) $ 
 ~~~
 
-where **"ghuser"** is your github user name (mine is <mark style="font-weight:bold; background-color: rgba(0, 0, 0, 0); color: #267B00">meekrob</mark>).  This is more information than we'll use for beginner lessons. Let's simplify the prompt. 
+where **"ghuser"** is your github user name (mine is <mark style="font-weight:bold; background-color: rgba(0, 0, 0, 0); color: #267B00">meekrob</mark>).  This is more information than we'll use for beginner lessons. Let's simplify the prompt and do other setup.
 
-<mark style="background-color: rgba(242, 255, 0, 1);">Simplify your prompt for lessons</mark>
+<mark style="background-color: rgba(242, 255, 0, 1);">Do some setup commands for the lesson</mark>
 
 Copy and paste the following lines into your terminal window and hit RETURN
 
 ~~~
+unalias ls
 PS1="$ "
 clear
 ~~~
