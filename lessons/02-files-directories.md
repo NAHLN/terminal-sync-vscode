@@ -229,10 +229,12 @@ Mandatory arguments to long options are mandatory for short options, too.
 ~~~
 
 ## Unsupported command-line options
+
 **Command:**
 ~~~
 $ ls -j
 ~~~
+
 **Output:**
 ~~~
 ls: invalid option -- 'j'
@@ -241,13 +243,19 @@ Try 'ls --help' for more information.
 
 #### The `man` command
 
-The other way to learn about `ls` is to type
+The other way to learn about `ls` is to type:
+
+**Command:**
 ~~~
 $ man ls
 ~~~
 
-This command will turn your terminal into a page with a description
-of the `ls` command and its options.
+**Output (interactive):**
+
+This command produces a *different kind of output*: instead of printing text and returning to your prompt, it opens a **full-screen viewer**.
+This viewer reacts to special shortcut keys and lets you scroll through the documentation.
+
+Specifically, `man ls` turns your terminal into a page containing a description of the `ls` command and all its options.
 
 To navigate through the `man` pages,
 you may use <kbd>↑</kbd> and <kbd>↓</kbd> to move line-by-line,
@@ -258,19 +266,22 @@ Sometimes a search will result in multiple hits.
 If so, you can move between hits using <kbd>n</kbd> (for moving forward) and
 <kbd>Shift</kbd>+<kbd>n</kbd> (for moving backward).
 
+To navigate through the `man` pages:
+
+- Use <kbd>↑</kbd> and <kbd>↓</kbd> to move line-by-line
+- Use <kbd>B</kbd> and <kbd>Spacebar</kbd> to move up or down by a full page
+- Use <kbd>/</kbd> followed by a word to **search**
+- Use <kbd>n</kbd> and <kbd>Shift</kbd>+<kbd>n</kbd> to move between search results
+
 To **quit** the `man` pages, press <kbd>q</kbd>.
 
-> ## Manual pages on the web
+> A third way to find command help is by searching the web.
+> Adding the phrase `unix man page` to your search often leads directly to the documentation.
 >
-> Of course, there is a third way to access help for commands:
-> searching the internet via your web browser.
-> When using internet search, including the phrase `unix man page` in your search
-> query will help to find relevant results.
->
-> GNU provides links to its
-> [manuals](http://www.gnu.org/manual/manual.html) including the
+> GNU also provides links to its
+> [manuals](http://www.gnu.org/manual/manual.html), including the
 > [core GNU utilities](http://www.gnu.org/software/coreutils/manual/coreutils.html),
-> which covers many commands introduced within this lesson.
+> which cover many commands in this lesson.
 
 
 > ## Exploring More `ls` Options
@@ -305,6 +316,71 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > > can be very useful for finding your most recent edits or checking to
 > > see if a new output file was written.
 > 
+
+## 📌 Section Recap
+
+1. **Current Working Directory (`pwd`)**  
+   Shows where you are in the filesystem. Most commands operate relative to this location.  
+   **Command:**  
+   ```
+   $ pwd
+   ```
+
+2. **Listing Files (`ls`)**  
+   Prints the names of files and directories in your current directory.  
+   **Command:**  
+   ```
+   $ ls
+   ```
+
+3. **Classifying Files (`ls -F`)**  
+   Adds markers to show file type: `/` for directories, `@` for links, `*` for executables.  
+   **Command:**  
+   ```
+   $ ls -F
+   ```
+
+4. **Long Listing (`ls -l`) and Human-Readable Sizes (`ls -lh`)**  
+   Shows additional info (size, modification time). `-h` makes file sizes easier to read.  
+   **Command:**  
+   ```
+   $ ls -lh
+   ```
+
+5. **Reverse / Time-Sorted Listings (`ls -r`, `ls -t`, `ls -rt`)**  
+   Sort files by reverse order or modification time. Useful to see the newest/oldest files.  
+
+6. **Clearing the Terminal (`clear`)**  
+   Removes clutter from the screen but preserves history, accessible with <kbd>↑</kbd> and <kbd>↓</kbd>.  
+   **Command:**  
+   ```
+   $ clear
+   ```
+
+7. **Interactive Help (`--help`)**  
+   Most commands support `--help` to display usage and options.  
+   **Command:**  
+   ```
+   $ ls --help
+   ```
+
+8. **Manual Pages (`man`)**  
+   Provides full documentation with navigation shortcuts:  
+   - <kbd>↑</kbd>/<kbd>↓</kbd> scroll line by line  
+   - <kbd>Spacebar</kbd>/<kbd>B</kbd> scroll by page  
+   - <kbd>/</kbd> search, <kbd>n</kbd>/<kbd>Shift</kbd>+<kbd>n</kbd> move between search results  
+   - <kbd>q</kbd> quit  
+
+9. **Root and Subdirectories**  
+   - `/` = root directory  
+   - Subdirectories are nested inside, e.g., `/workspaces` → `/workspaces/terminal-sync-vscode/`  
+
+10. **Prompt & Cursor**  
+    - `$` = static prompt symbol  
+    - Dark rectangle = cursor location  
+    - Type text where the cursor is and navigate with arrow keys  
+
+
 
 ### Exploring Other Directories
 
