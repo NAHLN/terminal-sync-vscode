@@ -14,49 +14,54 @@ and directories (also called 'folders'),
 which hold files or other directories.
 
 Several commands are frequently used to create, inspect, rename, and delete files and directories.
-To start exploring them, we'll go to our TERMINAL pane.  It is the bottom pane of your VS Code window, and look like:
+
+
+### Getting started
+
+To begin exploring file and directory commands, open the **TERMINAL** pane.
+
+👀 It’s the bottom pane of your VS Code window, and looks like:
 
 ![terminal pane screenshot](img/terminal-pane.png)
 
-Make sure <u>TERMINAL</u> is underlined. You can click to another tab (i.e. PROBLEMS, OUTPUT, ...), but make sure you get back to <u>TERMINAL</u>.
+Make sure **TERMINAL** is underlined. You can click other tabs (PROBLEMS, OUTPUT, etc.), but return to **TERMINAL** before continuing.
 
-First, let's look at the **prompt**. Your prompt will look like:
+👀 First, look at the **prompt**, which appears as:
 
 ~~~
 @ghuser ➜ /workspaces/terminal-sync-vscode (main) $ 
 ~~~
 
-where **"ghuser"** is your github user name (mine is <mark style="font-weight:bold; background-color: rgba(0, 0, 0, 0); color: #267B00">meekrob</mark>).  This is more information than we'll use for beginner lessons. Let's simplify the prompt and do other setup.
+💡 NOTICE:  **"ghuser"** is your GitHub username (mine is <mark style="font-weight:bold; background-color: rgba(0, 0, 0, 0); color: #267B00">meekrob</mark>).  
 
-<mark style="background-color: rgba(242, 255, 0, 1);">Do some setup commands for the lesson</mark>
 
-Copy and paste the following lines into your terminal window and hit RETURN
+> ⚙️ Let's make a few temporary changes to simplify the environment. Copy and paste the following into your terminal, then press <kbd>RETURN</kbd>:
+> ~~~
+> unalias ls
+> PS1="$ "
+> clear
+> ~~~
+>
 
-~~~
-unalias ls
-PS1="$ "
-clear
-~~~
-
-Your TERMINAL should now show only the dollar sign ($) on the top most line.  That is static (you can't delete it).
+👀 Your TERMINAL should now show only a dollar sign (`$`) at the top. This is static—you can’t delete it.
 
 ![clear prompt and cursor screenshot](img/prompt-cursor-screenshot.png)
 
-Breakdown of your terminal prompt:
-1. The circle is a VS Code thing, **ignore it**
-2. The '$' is a separator. Your typing will appear to the right
-3. The rectangle is the cursor. Your typing will insert into that position
+**Breakdown of your terminal prompt:**
+1. The circle is a VS Code UI element — **ignore it**.
+2. The `$` is the prompt marker. Your typing appears to its right.
+3. The dark rectangle is the **cursor**, indicating where text will be inserted.
 
 👉 Try it out.
 
-1. type some stuff in the terminal (note: you may have to click in the window first). E.g. some gibberish: "asdfasdf"
-2. move the cursor left and right with the arrow keys: <kbd>←</kbd> <kbd>→</kbd>
-3. add text where the cursor is (still gibberish)
+1. Type a few characters (e.g., “asdfasdf”). You may need to click inside the terminal first.
+2. Move the cursor with the arrow keys: <kbd>←</kbd> <kbd>→</kbd>.
+3. Add more text at the cursor position.
 
 
 ![gibberish at prompt](img/gibberish.png)
 
-Notice how the dark square marks the insert location. **This is different from apps like Microsoft Word** that use a vertical line and insert after it.
+👀  Notice how the dark square marks the insertion point. **This is different from apps like Microsoft Word**, which use a vertical bar that inserts *after* the cursor.
 
 👉  Next: clear the gibberish using any of the following methods:
 * right arrow <kbd>→</kbd> all the way to the end of what you typed and delete all the way to the left until only the "$" is shown.
