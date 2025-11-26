@@ -105,7 +105,7 @@ We know that our current working directory `/workspaces/terminal-sync-vscode/` i
 because "/workspaces" is the first part of its name.
 Similarly,
 we know that `/workspaces` is stored inside the root directory `/`
-because its name begins with "/".
+because its name begins with `/`.
 
 > ## Slashes
 >
@@ -115,18 +115,25 @@ because its name begins with "/".
 > it's just a separator.
 
 
-Underneath `/workspaces`,
-we find directories and files for different purposes. These all contribute to making this codespace, but also contain our lessons.
-
+Under `/workspaces`, we find directories and files used for different purposes.  
+These make up the Codespace environment and include our lesson materials.
 
 Now let's learn the command that will help us explore our local directory.  
 We can see what's in our home directory by running `ls`:
 
-~~~
+Now let's learn the command that helps us explore our current directory.  
+We can list its contents by running `ls`:
+
+**Command:**
+```
 $ ls
+```
+
+**Output:**
+```
 install-extension.sh  LICENSE       out           package-lock.json  shell-lesson-data  terminal-file-explorer-1.1.0.vsix
 lessons               node_modules  package.json  README.md          src                tsconfig.json
-~~~
+```
 
 `ls` prints the names of the files and directories in the current directory.
 We can make its output more comprehensible by using the `-F` **option**
