@@ -147,11 +147,12 @@ Depending on your shell's default settings,
 the shell might also use colors to indicate whether each entry is a file or
 directory.
 
+**Command:**
 ~~~
 $ ls -F
 ~~~
 
-
+**Output:**
 ~~~
 install-extension.sh  LICENSE        out/          package-lock.json  shell-lesson-data/  terminal-file-explorer-1.1.0.vsix
 lessons/              node_modules/  package.json  README.md          src/                tsconfig.json
@@ -174,19 +175,22 @@ are **files** in the current working directory.
 ### Getting help
 
 `ls` has lots of other **options**. There are two common ways to find out how
-to use a command and what options it accepts ---
-**depending on your environment, you might find that only one of these ways works:**
+to use a command and what options it accepts:
 
 1. We can pass a `--help` option to any command (available on Linux and Git Bash), for example:
-    ~~~
-    $ ls --help
-    ~~~
+
+**Command:**
+~~~
+$ ls --help
+~~~
     
 
 2. We can read its manual with `man` (available on Linux and macOS):
-    ~~~
-    $ man ls
-    ~~~
+
+**Command:**
+~~~
+$ man ls
+~~~
     
 
 We'll describe both ways next.
@@ -197,8 +201,15 @@ Most bash commands and programs that people have written to be
 run from within bash, support a `--help` option that displays more
 information on how to use the command or program.
 
+
+
+**Command:**
 ~~~
 $ ls --help
+~~~
+
+**Output (truncated):**
+~~~
 Usage: ls [OPTION]... [FILE]...
 List information about the FILEs (the current directory by default).
 Sort entries alphabetically if neither -cftuvSUX nor --sort is specified.
@@ -214,29 +225,19 @@ Mandatory arguments to long options are mandatory for short options, too.
   -B, --ignore-backups       do not list implied entries ending with ~
   -c                         with -lt: sort by, and show, ctime (time of last
                                modification of file status information);
-                               with -l: show ctime and sort by name;
-                               otherwise: sort by ctime, newest first
-  -C                         list entries by columns
-      --color[=WHEN]         colorize the output; WHEN can be 'always' (default
-                               if omitted), 'auto', or 'never'; more info below
-  -d, --directory            list directories themselves, not their contents
-  -D, --dired                generate output designed for Emacs' dired mode
-  -f                         do not sort, enable -aU, disable -ls --color
-  -F, --classify             append indicator (one of */=>@|) to entries
 ...        ...        ...
 ~~~
 
-> ## Unsupported command-line options
-> If you try to use an option that is not supported, `ls` and other commands
-> will usually print an error message similar to:
->
-> ~~~
-> $ ls -j
-> ls: invalid option -- 'j'
-> Try 'ls --help' for more information.
-> ~~~
-> 
->
+## Unsupported command-line options
+**Command:**
+~~~
+$ ls -j
+~~~
+**Output:**
+~~~
+ls: invalid option -- 'j'
+Try 'ls --help' for more information.
+~~~
 
 #### The `man` command
 
