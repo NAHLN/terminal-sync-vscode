@@ -63,10 +63,10 @@ Make sure **TERMINAL** is underlined. You can click other tabs (PROBLEMS, OUTPUT
 
 👀  Notice how the dark square marks the insertion point. **This is different from apps like Microsoft Word**, which use a vertical bar that inserts *after* the cursor.
 
-👉  Next: clear the gibberish using any of the following methods:
-* right arrow <kbd>→</kbd> all the way to the end of what you typed and delete all the way to the left until only the "$" is shown.
-* Type CTRL-E to immediately go to the end of what you typed (an awesome shortcut!) and delete left.
-* Type CTRL-C to "cancel" the current typing. A new line will appear below with a nice clean prompt.
+👉  Next: clear the gibberish using any of these methods:
+* Press <kbd>→</kbd> until the cursor reaches the end, then delete everything back to the `$`.
+* Press <kbd>CTRL</kbd>+<kbd>E</kbd> to jump to the end (a great shortcut!), then delete backward.
+* Press <kbd>CTRL</kbd>+<kbd>C</kbd> to cancel the current line. A new, clean prompt will appear below.
 
 
 Next, let's find out where we are by running a command called `pwd`
@@ -76,21 +76,23 @@ our **current working directory**. Commands mostly read and write files in the
 current working directory, i.e. 'here', so knowing where you are before running
 a command is important. `pwd` shows you where you are:
 
-~~~
+**Command:**
+```
 $ pwd
-~~~
+```
 
-~~~
+**Output:**
+```
 /workspaces/terminal-sync-vscode/
-~~~
+```
 
-Here,
-the computer's response is `/workspaces/shell-novice`. This is particular to github codespaces. On a normal server, 
-you will be in your HOME directory (discussed later).
+Here, the computer's response is `/workspaces/terminal-sync-vscode/`.  
+This location is particular to GitHub Codespaces. On a normal server,
+you will be in your **HOME** directory (discussed later).
 
-At the top is the **root directory** that holds everything else.
-We refer to it using a slash character, `/`, on its own;
-this character is the leading slash in `/workspaces/terminal-sync-vscode/`.
+At the top of the filesystem is the **root directory**, which holds everything else.  
+It is written as a single slash `/`; this is the leading slash in  
+`/workspaces/terminal-sync-vscode/`.
 
 Inside that directory are several other directories:
 `bin` (which is where some built-in programs are stored),
