@@ -43,6 +43,7 @@ Several commands are frequently used to create, inspect, rename, and delete file
 - [General Syntax of a Shell Command](#general-syntax-of-a-shell-command)
 - [Nelle's Pipeline: Organizing Files](#nelles-pipeline-organizing-files)
 
+---
 
 ### Getting started
 
@@ -415,6 +416,8 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 
 [back to top](#top)
 
+---
+
 ### Exploring Other Directories
 
 <mark style="background-color: rgba(255, 0, 0, 1);">THIS NEEDS TO BE ADAPTED BECAUSE THERE'S NO "Desktop"</mark>
@@ -770,7 +773,7 @@ directories "backup" and "thing"; "/Users/backup" contains "original",
 > >  3. Yes: uses the absolute path explicitly.
 >
 
-
+---
 
 ## General Syntax of a Shell Command
 We have now encountered commands, options, and arguments,
