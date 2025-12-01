@@ -115,7 +115,7 @@ $ pwd
 ```
 
 Here, the computer's response is `/workspaces/terminal-sync-vscode/`.  
-This location is particular to GitHub Codespaces. On a normal server,
+This location is particular to GitHub Codespaces. We will refer to this as the **Codespace Starting Directory**.  On a normal server,
 you will be in your **HOME** directory (discussed later).
 
 At the top of the filesystem is the **root directory**, which holds everything else.  
@@ -439,7 +439,7 @@ exercise-data/  north-pacific-gyre/
 
 Note that if a directory named `shell-lesson-data` does not exist in your current working directory,
 this command will return an error. Typically, a `shell-lesson-data` directory exists in your
-home directory, which we assume is the current working directory of your bash shell.
+**Codespace Starting Directory**, which we assume is the current working directory of your bash shell.
 
 As you may now see, the bash shell strongly depends on
 your files being organized in a hierarchical file system.
@@ -448,7 +448,7 @@ it's possible to put hundreds of files in our home directory,
 just as it's possible to pile hundreds of printed papers on our desk,
 but it's a self-defeating strategy.
 
-Now that we know the `shell-lesson-data` directory is located in our Desktop directory, we
+Now that we know the `shell-lesson-data` directory is located in our **Codespace Starting Directory**, we
 can do two things.
 
 First, using the same strategy as before, we can look at its contents by passing
@@ -466,14 +466,11 @@ exercise-data/  north-pacific-gyre/
 
 Second, we can actually change our location to a different directory, so
 we are no longer located in
-our home directory.
+our Codespace directory.
 
-The command to change locations is `cd` followed by a
-directory name to change our working directory.
-`cd` stands for 'change directory',
-which is a bit misleading.
-The command doesn't change the directory;
-it changes the shell's current working directory.
+The command to change locations is `cd` followed by a directory name to change our working directory.
+`cd` stands for 'change directory', which is a bit misleading.
+The command doesn't change the directory; it changes the shell's current working directory.
 In other words it changes the shell's settings for what directory we are in.
 The `cd` command is akin to double-clicking a folder in a graphical interface
 to get into that folder.
