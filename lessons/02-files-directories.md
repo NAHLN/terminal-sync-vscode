@@ -1,6 +1,7 @@
 ---
 Note: this document is markdown. Text is readable, but formatting is better in VS Code's Preview. In VS Code, do Shift-CTRL-V (Shift CMD-V on MAC).
 ---
+<a id="top"></a>
 
 # 02-files-directories
 
@@ -14,6 +15,33 @@ and directories (also called 'folders'),
 which hold files or other directories.
 
 Several commands are frequently used to create, inspect, rename, and delete files and directories.
+
+## Table of Contents
+
+- [Getting started](#getting-started)
+  - [Slashes](#slashes)
+  - [Clearing your terminal](#clearing-your-terminal)
+- [Getting help](#getting-help)
+  - [The `--help` option](#the-help-option)
+- [Unsupported command-line options](#unsupported-command-line-options)
+  - [The `man` command](#the-man-command)
+  - [Exploring More `ls` Options](#exploring-more-ls-options)
+    - [Challenge](#challenge)
+    - [Solution](#solution)
+  - [Listing in Reverse Chronological Order](#listing-in-reverse-chronological-order)
+    - [Challenge](#challenge-1)
+    - [Solution](#solution-1)
+- [📌 Section Recap](#-section-recap)
+- [Exploring Other Directories](#exploring-other-directories)
+  - [Other Hidden Files](#other-hidden-files)
+  - [Challenge: Absolute vs Relative Paths](#challenge-absolute-vs-relative-paths)
+    - [Solution](#solution-2)
+  - [Challenge: Relative Path Resolution](#challenge-relative-path-resolution)
+    - [Solution](#solution-3)
+  - [`ls` Reading Comprehension](#ls-reading-comprehension)
+    - [Solution](#solution-4)
+- [General Syntax of a Shell Command](#general-syntax-of-a-shell-command)
+- [Nelle's Pipeline: Organizing Files](#nelles-pipeline-organizing-files)
 
 
 ### Getting started
@@ -283,9 +311,11 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > [core GNU utilities](http://www.gnu.org/software/coreutils/manual/coreutils.html),
 > which cover many commands in this lesson.
 
+[back to top](#top)
 
 > ## Exploring More `ls` Options
 >
+> > ### Challenge
 > You can also use two options at the same time. What does the command `ls` do when used
 > with the `-l` option? What about if you use both the `-l` and the `-h` option?
 >
@@ -293,16 +323,17 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > as file permissions and ownership), but the rest should be useful
 > nevertheless.
 >
-> > ## Solution
-> > The `-l` option makes `ls` use a **l**ong listing format, showing not only
-> > the file/directory names but also additional information, such as the file size
-> > and the time of its last modification. If you use both the `-h` option and the `-l` option,
-> > this makes the file size '**h**uman readable', i.e. displaying something like `5.3K`
-> > instead of `5369`.
+> > ### Solution
+> The `-l` option makes `ls` use a **l**ong listing format, showing not only
+> the file/directory names but also additional information, such as the file size
+> and the time of its last modification. If you use both the `-h` option and the `-l` option,
+> this makes the file size '**h**uman readable', i.e. displaying something like `5.3K`
+> instead of `5369`.
 > 
 
 > ## Listing in Reverse Chronological Order
 >
+> > ### Challenge
 > By default, `ls` lists the contents of a directory in alphabetical
 > order by name. The command `ls -t` lists items by time of last
 > change instead of alphabetically. The command `ls -r` lists the
@@ -311,10 +342,10 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > Hint: You may need to use the `-l` option to see the
 > last changed dates.
 >
-> > ## Solution
-> > The most recently changed file is listed last when using `-rt`. This
-> > can be very useful for finding your most recent edits or checking to
-> > see if a new output file was written.
+> > ### Solution
+> The most recently changed file is listed last when using `-rt`. This
+> can be very useful for finding your most recent edits or checking to
+> see if a new output file was written.
 > 
 
 ## 📌 Section Recap
@@ -380,7 +411,7 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
     - Dark rectangle = cursor location  
     - Type text where the cursor is and navigate with arrow keys  
 
-
+[back to top](#top)
 
 ### Exploring Other Directories
 
