@@ -106,11 +106,13 @@ current working directory, i.e. 'here', so knowing where you are before running
 a command is important. `pwd` shows you where you are:
 
 **Command:**
+
 ```
 $ pwd
 ```
 
 **Output:**
+
 ```
 /workspaces/terminal-sync-vscode/
 ```
@@ -154,11 +156,13 @@ Now let's learn the command that helps us explore our current directory.
 We can list its contents by running `ls`:
 
 **Command:**
+
 ```
 $ ls
 ```
 
 **Output:**
+
 ```
 install-extension.sh  LICENSE       out           package-lock.json  shell-lesson-data  terminal-file-explorer-1.1.0.vsix
 lessons               node_modules  package.json  README.md          src                tsconfig.json
@@ -177,11 +181,13 @@ the shell might also use colors to indicate whether each entry is a file or
 directory.
 
 **Command:**
+
 ~~~
 $ ls -F
 ~~~
 
 **Output:**
+
 ~~~
 install-extension.sh  LICENSE        out/          package-lock.json  shell-lesson-data/  terminal-file-explorer-1.1.0.vsix
 lessons/              node_modules/  package.json  README.md          src/                tsconfig.json
@@ -209,6 +215,7 @@ to use a command and what options it accepts:
 1. We can pass a `--help` option to any command (available on Linux and Git Bash), for example:
 
 **Command:**
+
 ~~~
 $ ls --help
 ~~~
@@ -217,6 +224,7 @@ $ ls --help
 2. We can read its manual with `man` (available on Linux and macOS):
 
 **Command:**
+
 ~~~
 $ man ls
 ~~~
@@ -233,11 +241,13 @@ information on how to use the command or program.
 
 
 **Command:**
+
 ~~~
 $ ls --help
 ~~~
 
 **Output (truncated):**
+
 ~~~
 Usage: ls [OPTION]... [FILE]...
 List information about the FILEs (the current directory by default).
@@ -357,46 +367,65 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 ## 📌 Section Recap
 
 1. **Current Working Directory (`pwd`)**  
+
    Shows where you are in the filesystem. Most commands operate relative to this location.  
+
    **Command:**  
+
    ```
    $ pwd
    ```
 
 2. **Listing Files (`ls`)**  
+
    Prints the names of files and directories in your current directory.  
+
    **Command:**  
+
    ```
    $ ls
    ```
 
 3. **Classifying Files (`ls -F`)**  
+
    Adds markers to show file type: `/` for directories, `@` for links, `*` for executables.  
+
    **Command:**  
+
    ```
    $ ls -F
    ```
 
 4. **Long Listing (`ls -l`) and Human-Readable Sizes (`ls -lh`)**  
+
    Shows additional info (size, modification time). `-h` makes file sizes easier to read.  
+
    **Command:**  
+
    ```
    $ ls -lh
    ```
 
 5. **Reverse / Time-Sorted Listings (`ls -r`, `ls -t`, `ls -rt`)**  
+
    Sort files by reverse order or modification time. Useful to see the newest/oldest files.  
 
 6. **Clearing the Terminal (`clear`)**  
+
    Removes clutter from the screen but preserves history, accessible with <kbd>↑</kbd> and <kbd>↓</kbd>.  
+
    **Command:**  
+
    ```
    $ clear
    ```
 
 7. **Interactive Help (`--help`)**  
+
    Most commands support `--help` to display usage and options.  
+
    **Command:**  
+   
    ```
    $ ls --help
    ```
