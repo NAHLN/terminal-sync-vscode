@@ -260,11 +260,13 @@ Mandatory arguments to long options are mandatory for short options, too.
 ## Unsupported command-line options
 
 **Command:**
+
 ~~~
 $ ls -j
 ~~~
 
 **Output:**
+
 ~~~
 ls: invalid option -- 'j'
 Try 'ls --help' for more information.
@@ -275,6 +277,7 @@ Try 'ls --help' for more information.
 The other way to learn about `ls` is to type:
 
 **Command:**
+
 ~~~
 $ man ls
 ~~~
