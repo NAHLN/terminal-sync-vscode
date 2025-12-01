@@ -193,11 +193,11 @@ shows a trailing slash on the name (such as `out/`).
 Any names in the output that don't have a classification symbol
 are **files** in the current working directory.
 
-> ## Clearing your terminal
->
-> If your screen gets too cluttered, you can clear your terminal using the
-> `clear` command. You can still access previous commands using <kbd>↑</kbd>
-> and <kbd>↓</kbd> to move line-by-line, or by scrolling in your terminal.
+## Clearing your terminal
+
+If your screen gets too cluttered, you can clear your terminal using the
+`clear` command. You can still access previous commands using <kbd>↑</kbd>
+and <kbd>↓</kbd> to move line-by-line, or by scrolling in your terminal.
 
 
 ### Getting help
@@ -313,9 +313,11 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 
 [back to top](#top)
 
-> ## Exploring More `ls` Options
+---
+
+## Exploring More `ls` Options
 >
-> > ### Challenge
+> ### Challenge
 > You can also use two options at the same time. What does the command `ls` do when used
 > with the `-l` option? What about if you use both the `-l` and the `-h` option?
 >
@@ -323,7 +325,7 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > as file permissions and ownership), but the rest should be useful
 > nevertheless.
 >
-> > ### Solution
+> ### Solution
 > The `-l` option makes `ls` use a **l**ong listing format, showing not only
 > the file/directory names but also additional information, such as the file size
 > and the time of its last modification. If you use both the `-h` option and the `-l` option,
@@ -331,9 +333,9 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > instead of `5369`.
 > 
 
-> ## Listing in Reverse Chronological Order
+## Listing in Reverse Chronological Order
 >
-> > ### Challenge
+> ### Challenge
 > By default, `ls` lists the contents of a directory in alphabetical
 > order by name. The command `ls -t` lists items by time of last
 > change instead of alphabetically. The command `ls -r` lists the
@@ -342,7 +344,7 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 > Hint: You may need to use the `-l` option to see the
 > last changed dates.
 >
-> > ### Solution
+> ### Solution
 > The most recently changed file is listed last when using `-rt`. This
 > can be very useful for finding your most recent edits or checking to
 > see if a new output file was written.
