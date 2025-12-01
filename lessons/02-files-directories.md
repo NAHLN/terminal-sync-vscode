@@ -311,7 +311,7 @@ If so, you can move between hits using <kbd>n</kbd> (for moving forward) and
 To navigate through the `man` pages:
 
 - Use <kbd>↑</kbd> and <kbd>↓</kbd> to move line-by-line
-- Use <kbd>B</kbd> and <kbd>Spacebar</kbd> to move up or down by a full page
+- Use <kbd>b</kbd> and <kbd>Spacebar</kbd> to move up or down by a full page
 - Use <kbd>/</kbd> followed by a word to **search**
 - Use <kbd>n</kbd> and <kbd>Shift</kbd>+<kbd>n</kbd> to move between search results
 
@@ -450,19 +450,141 @@ To **quit** the `man` pages, press <kbd>q</kbd>.
 
 ---
 
+## Other directories
+
+### Home directory
+
+As we stated before, The **Codespace Starting Directory** is unique to Github codespaces.  Normally, on a Linux server, your
+initial directory is your "home" directory.  We have one in Codespaces, but just don't use it.  Since it's still a very important concept, let's explore it.
+
+**Users and groups**
+
+Every account on Linux has a username and is usually associated with one or more groups.  This convention allows for multiuser systems (like Linux) to maintain privacy and security. It also helps separate administrative tasks (root user) from normal usage.
+
+You can see your username like this:
+
+**Command:**
+
+~~~
+$ whoami
+~~~
+
+**Output:**
+
+~~~
+node
+~~~
+
+👀  On an actual Linux server, your user name would be based on your real name, or ID associated with your organization, depending on how it's administered.
+
+**Home directory**
+
+Each user is given a home directory.  Ours is `/home/node`.  To go to your home directory at any time, type `cd` without arguments.
+
+**Command:**
+
+~~~
+$ cd
+~~~
+
+**Output:**
+
+~~~
+~~~
+
+Blank.  **Why is there no output?**  A lot of commands work silently in order to keep the terminal from overfilling with status
+messages. 
+
+We'll use `pwd` like before to verify our location.
+
+**Command:**
+
+~~~
+$ pwd
+~~~
+
+**Output:**
+
+~~~
+/home/node
+~~~
+
+### Home directory contents
+
+To see what's in your home directory, do:
+
+**Command:**
+
+~~~
+$ ls
+~~~
+
+**Output:**
+
+~~~
+~~~
+
+‼️ **Is it blank? That's OK!** Normally, a new account on Linux will have very few files here.  It will fill up as you work.
+
+**However**, your home directory is the place for all the configuration that goes on with your shell and software you install.
+
+Show hidden files by adding the `-a` flag to `ls` (*a* for *all*).
+
+**Command:**
+
+~~~
+$ ls -a
+~~~
+
+**Output:**
+
+~~~
+.   .bash_history  .bashrc  .config  .dotnet     .lesshst    .npm            .profile        .zprofile
+..  .bash_logout   .cache   .docker  .gitconfig  .oh-my-zsh  .vscode-remote  .zshrc
+~~~
+
+You'll see every entry begins with a dot (`.`). These are called "hidden files". 
+
+## Exploring the Home Directory 
+>
+> ### Challenge
+> What commands/arguments can you use to show whether these are files or directories?
+>
+> ### Solution
+> The `-l` option makes `ls` use a **l**ong listing format, and the `-F` option
+> makes `ls` show a guide character for directories "\". 
+> The trick is: these must be used in combination with `-a` like so:
+> `ls -al` or `ls -a -F` or `ls -alF`
+> You can see there is flexbility in how you specify arguments for `ls`. Not all commands are so easy to use. Always consult 
+> documentation on new commands.
+
+
 ### Exploring Other Directories
 
-<mark style="background-color: rgba(255, 0, 0, 1);">THIS NEEDS TO BE ADAPTED BECAUSE THERE'S NO "Desktop"</mark>
+Let's return to our **Codespace Starting Directory**.
 
-<mark style="background-color: rgba(255, 0, 0, 1);">THE shell-lesson-data EXERCISE IS DUPLICATED</mark>
+**Commands:**
 
-Not only can we use `ls` on the current working directory,
-but we can use it to list the contents of a different directory.
+~~~
+$ cd /workspaces/terminal-sync-vscode
+$ pwd
+~~~
+
+**Output:**
+
+~~~
+/workspaces/terminal-sync-vscode
+~~~
+
+So far we have shown `ls` being used to list directories by doing `cd directory` first and then doing `ls`.  
+Not only can we use `ls` on the current working directory, but we can use it to list the contents of a different directory.
 Let's take a look at our `shell-lesson-data` directory by running `ls -F shell-lesson-data`,
 i.e.,
 the command `ls` with the `-F` **option** and the [**argument**][Arguments]  `shell-lesson-data`.
 The argument `shell-lesson-data` tells `ls` that
 we want a listing of something other than our current working directory:
+
+**Command:**
 
 ~~~
 $ ls -F shell-lesson-data
@@ -491,6 +613,8 @@ can do two things.
 First, using the same strategy as before, we can look at its contents by passing
 a directory name to `ls`:
 
+**Command:**
+
 ~~~
 $ ls -F shell-lesson-data
 ~~~
@@ -516,10 +640,14 @@ to get into that folder.
 Let's say we want to move into the `exercise-data` directory we saw above. We can
 use the following series of commands to get there:
 
+**Commands:**
+
 ~~~
 $ cd shell-lesson-data
 $ cd exercise-data
 ~~~
+
+*(Output is silent)*
 
 
 These commands will move us from our home directory into our Desktop directory, then into
@@ -533,6 +661,8 @@ If we run `ls -F` without arguments now,
 it lists the contents of `/workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data`,
 because that's where we now are:
 
+**Command:**
+
 ~~~
 $ pwd
 ~~~
@@ -542,6 +672,7 @@ $ pwd
 /workspaces/terminal-sync-vscode/shell-lesson-data/exercise-data
 ~~~
 
+**Command:**
 
 ~~~
 $ ls -F
@@ -556,6 +687,8 @@ animal-counts/  creatures/  numbers.txt  alkanes/  writing/
 We now know how to go down the directory tree (i.e. how to go into a subdirectory),
 but how do we go up (i.e. how do we leave a directory and go into its parent directory)?
 We might try the following:
+
+**Command:**
 
 ~~~
 $ cd shell-lesson-data
@@ -576,6 +709,8 @@ with the simplest.
 
 There is a shortcut in the shell to move up one directory level. It works as follows:
 
+**Command:**
+
 ~~~
 $ cd ..
 ~~~
@@ -587,6 +722,8 @@ or more succinctly,
 the **parent** of the current directory.
 Sure enough,
 if we run `pwd` after running `cd ..`, we're back in `/workspaces/terminal-sync-vscode/shell-lesson-data`:
+
+**Command:**
 
 ~~~
 $ pwd
@@ -600,6 +737,8 @@ $ pwd
 
 The special directory `..` doesn't usually show up when we run `ls`. If we want
 to display it, we can add the `-a` option to `ls -F`:
+
+**Command:**
 
 ~~~
 $ ls -F -a
@@ -634,43 +773,6 @@ equivalent to `ls -Fa`.
 > configuration files from cluttering the terminal when a standard `ls` command
 > is used.
 
-
-These three commands are the basic commands for navigating the filesystem on your Linux/Unix:
-`pwd`, `ls`, and `cd`. Let's explore some variations on those commands. What happens
-if you type `cd` on its own, without giving
-a directory?
-
-~~~
-$ cd
-~~~
-
-
-How can you check what happened? `pwd` gives us the answer!
-
-~~~
-$ pwd
-~~~
-
-
-~~~
-/home/node
-~~~
-
-
-It turns out that `cd` without an argument will return you to your home directory,
-which is great if you've got lost in your own filesystem.  **On github workspaces, we don't use
-the home directory**, but on an HPC this is where your configuration files, and sometimes data, reside.
-
-Let's try returning to the `exercise-data` directory from before. Last time, we used
-three commands, but we can actually string together the list of directories
-to move to `exercise-data` in one step:
-
-~~~
-$ cd /workspaces/shell-lesson-data/exercise-data
-~~~
-
-
-Check that we've moved to the right place by running `pwd` and `ls -F`.
 
 If we want to move up one level from the data directory, we could use `cd ..`.  But
 there is another way to move to any directory, regardless of your
