@@ -225,7 +225,7 @@ export function buildFileDataSync(dir: string, filename: string): FileData {
     classify: undefined
   };
 
-  const mode = formatMode(fileData);
+  fileData.mode = formatMode(fileData);
 
   // symlink target resolution
   if (fileData.isSymlink) {
@@ -1099,6 +1099,7 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
                     <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
                         ${showIcon ? `<td class="icon">${icon}</td>` : ''}
                         <td class="name">${displayName}</td>
+                        <td class="mode">${file.mode}</td>
                         <td class="size">${formatSize(file.size)}</td>
                         <td class="date">${formatDate(file.mtime)}</td>
                     </tr>
@@ -1214,6 +1215,7 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
             <tr>
                 ${options.longFormat || options.classify ? '<th class="icon"></th>' : ''}
                 <th class="name">Name</th>
+                ${options.longFormat ? '<th class="mode">Mode</td>' : ''}
                 ${options.longFormat ? '<th class="size">Size</th>' : ''}
                 ${options.longFormat ? '<th class="date">Modified</th>' : ''}
             </tr>
