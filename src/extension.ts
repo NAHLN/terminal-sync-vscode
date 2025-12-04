@@ -8,6 +8,43 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { FileData, buildFileDataSync, classifyFile } from "./fileData";
+import {
+    isPwdCommand,
+    isCdCommand,
+    isLsCommand,
+    parseLsOptions,
+    extractCdTarget,
+    LsOptions
+} from "./commandParser";
+
+let lsOptions: LsOptions = {
+    showHidden: false,
+    longFormat: false,
+    sortBy: 'name',
+    reverseSort: false,
+    humanReadable: false,
+    classify: false,
+    almostAll: false
+};
+
+// A minimal Dirent-like object for representing "." and ".."
+// These behave like directories so the rest of the code can treat them uniformly.
+class FakeDirent implements fs.Dirent {
+    constructor(public name: string) {}
+
+    isDirectory():       boolean { return true; }
+    isFile():            boolean { return false; }
+    isSymbolicLink():    boolean { return false; }
+    isBlockDevice():     boolean { return false; }
+    isCharacterDevice(): boolean { return false; }
+    isFIFO():            boolean { return false; }
+    isSocket():          boolean { return false; }
+
+    // Use '!' to evade compiler checking for assignment
+    parentPath!: string;       // not used
+    path!: string;             // not used
+}
+
 
 let outputChannel: vscode.OutputChannel;
 let remoteExplorer: RemoteFileExplorer;
@@ -15,23 +52,7 @@ let lsTableViewProvider: LsTableViewProvider;
 let currentWorkingDirectory: string = '';
 let statusBarItem: vscode.StatusBarItem;
 let shouldShowFiles: boolean = false;  // Only show files after ls command
-let lsOptions: LsOptions = {
-    showHidden: false,
-    longFormat: false,
-    sortBy: 'name',
-    reverseSort: false,
-    humanReadable: false,
-    classify: false
-};
 
-interface LsOptions {
-    showHidden: boolean;      // -a or -A
-    longFormat: boolean;      // -l
-    sortBy: 'name' | 'time' | 'size' | 'none';  // -t, -S, -U
-    reverseSort: boolean;     // -r
-    humanReadable: boolean;   // -h
-    classify: boolean;        // -F (append indicator to entries)
-}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Terminal-Synced File Browser activated');
@@ -77,7 +98,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (isCdCommand(command)) {
                 if (exitCode === 0) {
                     // CD succeeded - try to get actual directory
-                    const targetDir = extractCdTarget(command);
+                    const targetDir = extractCdTarget(command, currentWorkingDirectory);
                     
                     // Check if we could parse it and it exists
                     if (targetDir && fs.existsSync(targetDir)) {
@@ -213,107 +234,6 @@ function syncFromTerminal(terminal: vscode.Terminal, showFiles: boolean) {
     }
 }
 
-function isPwdCommand(command: string): boolean {
-    return /^\s*pwd\s*$/.test(command);
-}
-
-function isCdCommand(command: string): boolean {
-    const cdPatterns = [
-        /^cd(\s|$)/,        // cd with optional space/argument or end of line
-        /^pushd\s+/,
-        /&&\s*cd(\s|$)/,    // cd in command chain
-        /;\s*cd(\s|$)/      // cd after semicolon
-    ];
-    return cdPatterns.some(pattern => pattern.test(command));
-}
-
-function isLsCommand(command: string): boolean {
-    // Match ls command, potentially with options and arguments
-    // Handles: ls, ls -la, ls /path, ls -l /path, etc.
-    return /^\s*ls(\s|$)/.test(command);
-}
-
-function parseLsOptions(command: string): LsOptions {
-    const options: LsOptions = {
-        showHidden: false,
-        longFormat: false,
-        sortBy: 'name',
-        reverseSort: false,
-        humanReadable: false,
-        classify: false
-    };
-
-    // Extract options part (everything after 'ls' but before paths)
-    const parts = command.trim().split(/\s+/);
-    
-    for (const part of parts) {
-        if (!part.startsWith('-')) continue;
-        
-        // Handle both -a and --all style options
-        if (part === '--all' || part.includes('a')) {
-            options.showHidden = true;
-        }
-        if (part === '--almost-all' || part.includes('A')) {
-            options.showHidden = true;  // -A is similar to -a
-        }
-        if (part === '-l' || part.includes('l')) {
-            options.longFormat = true;
-        }
-        if (part === '--reverse' || part.includes('r')) {
-            options.reverseSort = true;
-        }
-        if (part === '-t' || part.includes('t')) {
-            options.sortBy = 'time';
-        }
-        if (part === '-S' || part.includes('S')) {
-            options.sortBy = 'size';
-        }
-        if (part === '-U' || part.includes('U')) {
-            options.sortBy = 'none';  // Unsorted (directory order)
-        }
-        if (part === '--human-readable' || part.includes('h')) {
-            options.humanReadable = true;
-        }
-        if (part === '--classify' || part === '-F' || part.includes('F')) {
-            options.classify = true;
-        }
-    }
-
-    return options;
-}
-
-function extractCdTarget(command: string): string | null {
-    // Check if it's just "cd" without arguments - should go to HOME
-    const justCd = command.match(/(?:^|&&|;)\s*cd\s*(?:&&|;|$)/);
-    if (justCd) {
-        const homeDir = process.env.HOME || process.env.USERPROFILE;
-        return homeDir || null;
-    }
-
-    const cdMatch = command.match(/(?:^|&&|;)\s*(?:cd|pushd)\s+(.+?)(?:\s*&&|\s*;|$)/);
-    if (!cdMatch) return null;
-
-    let target = cdMatch[1].trim();
-    target = target.replace(/^["']|["']$/g, '');
-    
-    if (target === '-') return null;
-    
-    // Expand ~ if needed
-    if (target === '~' || target.startsWith('~/')) {
-        const homeDir = process.env.HOME || process.env.USERPROFILE;
-        if (homeDir) {
-            target = target.replace(/^~/, homeDir);
-        }
-    }
-
-    // Handle relative paths
-    if (!path.isAbsolute(target) && currentWorkingDirectory) {
-        target = path.resolve(currentWorkingDirectory, target);
-    }
-
-    return target;
-}
-
 class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<RemoteFileItem | undefined | null | void> = 
         new vscode.EventEmitter<RemoteFileItem | undefined | null | void>();
@@ -332,7 +252,8 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
             sortBy: 'name',
             reverseSort: false,
             humanReadable: false,
-            classify: false
+            classify: false,
+            almostAll: false
         };
     }
 
@@ -665,10 +586,31 @@ async function updateLsTableView() {
         // Read directory contents
         const entries = await fs.promises.readdir(currentWorkingDirectory, { withFileTypes: true });
         
-        // Filter hidden files
-        let filtered = entries;
-        if (!lsOptions.showHidden) {
-            filtered = entries.filter(entry => !entry.name.startsWith('.'));
+        let filtered: fs.Dirent[];
+
+        if (lsOptions.showHidden) {
+            if (lsOptions.almostAll) {
+                // -A (almost-all):
+                // show dotfiles EXCEPT "." and ".."
+                filtered = entries.filter(entry =>
+                    entry.name !== "." &&
+                    entry.name !== ".."
+                );
+            } else {
+                // -a:
+                // show all dotfiles AND insert "." and ".."
+                filtered = [
+                    new FakeDirent("."),
+                    new FakeDirent(".."),
+                    ...entries
+                ];
+            }
+        } else {
+            // Default ls behavior:
+            // hide dotfiles (anything starting with ".")
+            filtered = entries.filter(entry =>
+                !entry.name.startsWith('.')
+            );
         }
 
         // Get file stats and create data array
