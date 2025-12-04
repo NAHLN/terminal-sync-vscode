@@ -215,6 +215,13 @@ function updateStatusBar(directory: string) {
     statusBarItem.tooltip = `Current: ${directory}\nClick to reveal in tree`;
 }
 
+function GNULikeSortKey(name: string): string {
+    if (name === ".") return "\x00";
+    if (name === "..") return "\x01";
+    if (name.startsWith(".")) return name.substring(1);
+    return name;
+}
+
 function syncFromTerminal(terminal: vscode.Terminal, showFiles: boolean) {
     // Try to get the terminal's current working directory
     // This uses the shell integration's cwd tracking
@@ -419,7 +426,7 @@ class RemoteFileExplorer implements vscode.TreeDataProvider<RemoteFileItem> {
         if (this.lsOptions.sortBy === 'name') {
             // Strictly alphabetical - no directories first
             sorted = entries.sort((a, b) => {
-                return a.name.localeCompare(b.name);
+                return GNULikeSortKey(a.name).localeCompare(GNULikeSortKey(b.name));
             });
         } else if (this.lsOptions.sortBy === 'time') {
             // Sort by modification time
@@ -626,7 +633,7 @@ async function updateLsTableView() {
                 return 0;
             } else if (lsOptions.sortBy === 'name') {
                 // Strictly alphabetical - no directories first
-                return a.name.localeCompare(b.name);
+                return GNULikeSortKey(a.name).localeCompare(GNULikeSortKey(b.name));
             } else if (lsOptions.sortBy === 'time') {
                 return b.mtime.getTime() - a.mtime.getTime();
             } else if (lsOptions.sortBy === 'size') {
