@@ -658,6 +658,7 @@ async function updateLsTableView() {
 
 class LsTableViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
+    private _cssUri?: vscode.Uri;
 
     constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -670,8 +671,14 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.options = {
             enableScripts: true,
-            localResourceRoots: [this._extensionUri]
+            localResourceRoots: [
+                vscode.Uri.joinPath(this._extensionUri, "media")
+            ]
         };
+
+        this._cssUri = webviewView.webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, "media", "styles.css")
+        );
 
         webviewView.webview.html = this._getInitialHtml();
 
@@ -706,14 +713,13 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
     // see webviewTemplates.ts to view the 
     // table's HTML
     private _getInitialHtml(): string {
-        return webviewTemplates.getInitialHtml();
+        return webviewTemplates.getInitialHtml(this._cssUri!);
     }
     private _getWaitingHtml(directory: string): string {
-        return webviewTemplates.getWaitingHtml(directory);
+        return webviewTemplates.getWaitingHtml(directory, this._cssUri!);
     }
-
     private _getHtmlForTable(directory: string, files: FileData[], options: LsOptions): string { 
-        return webviewTemplates.getHtmlForTable(directory,files,lsOptions);
+        return webviewTemplates.getHtmlForTable(directory, files, options, this._cssUri!);
     }
 
 }

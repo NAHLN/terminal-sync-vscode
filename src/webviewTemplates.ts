@@ -2,31 +2,19 @@
 //   Use this module to organize all html-generating functions.
 //   See matching private method names (with _ added in front) in
 //   class LsTableViewProvider (extension.ts)
+import * as vscode from 'vscode';
 import * as LsParser from "./commandParser";
 import * as FileSystem from "./fileData";
 import * as path from 'path';
 
-export function getInitialHtml(): string {
+export function getInitialHtml(cssUri: vscode.Uri): string {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LS Table</title>
-<style>
-    body {
-        padding: 10px;
-        font-family: var(--vscode-font-family);
-        font-size: var(--vscode-font-size);
-        color: var(--vscode-foreground);
-    }
-    .waiting {
-        color: var(--vscode-descriptionForeground);
-        font-style: italic;
-        padding: 20px;
-        text-align: center;
-    }
-</style>
+<link href="${cssUri}" rel="stylesheet">
 </head>
 <body>
 <div class="waiting">
@@ -36,41 +24,14 @@ export function getInitialHtml(): string {
 </html>`;
 }
 
-export function getWaitingHtml(directory: string): string {
+export function getWaitingHtml(directory: string, cssUri: vscode.Uri): string {
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LS Table</title>
-    <style>
-        body {
-            padding: 0;
-            margin: 0;
-            font-family: var(--vscode-font-family);
-            font-size: var(--vscode-font-size);
-            color: var(--vscode-foreground);
-        }
-        .header {
-            padding: 8px 10px;
-            background-color: var(--vscode-sideBarSectionHeader-background);
-            border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .directory-path {
-            color: var(--vscode-terminal-ansiGreen);
-            font-size: 12px;
-        }
-        .waiting {
-            color: var(--vscode-descriptionForeground);
-            font-style: italic;
-            padding: 40px 20px;
-            text-align: center;
-        }
-    </style>
+    <link href="${cssUri}" rel="stylesheet">
 </head>
 <body>
     <div class="header">
@@ -86,7 +47,8 @@ export function getWaitingHtml(directory: string): string {
 export function getHtmlForTable(
     directory: string, 
     files: FileSystem.FileData[], 
-    options: LsParser.LsOptions
+    options: LsParser.LsOptions,
+    cssUri: vscode.Uri
 ): string {
 
 
@@ -132,92 +94,7 @@ export function getHtmlForTable(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LS Table</title>
-    <style>
-        body {
-            padding: 0;
-            margin: 0;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 13px;
-            color: var(--vscode-foreground);
-            background-color: var(--vscode-editor-background);
-        }
-        .header {
-            padding: 8px 10px;
-            background-color: var(--vscode-sideBarSectionHeader-background);
-            border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .directory-path {
-            color: var(--vscode-terminal-ansiGreen);
-            font-size: 12px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        th {
-            position: sticky;
-            top: 33px;
-            background-color: var(--vscode-sideBarSectionHeader-background);
-            padding: 4px 8px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border);
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--vscode-descriptionForeground);
-        }
-        th.icon { width: 30px; }
-        th.name { width: auto; }
-        th.size { width: 80px; }
-        th.date { width: 120px; }
-        tr {
-            cursor: pointer;
-        }
-        tr:hover {
-            background-color: var(--vscode-list-hoverBackground);
-        }
-        tr.directory:hover {
-            background-color: var(--vscode-list-activeSelectionBackground);
-        }
-        td {
-            padding: 4px 8px;
-            border-bottom: 1px solid var(--vscode-panel-border);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        td.icon {
-            text-align: center;
-            font-size: 14px;
-        }
-        td.name {
-            font-weight: 500;
-        }
-        tr.directory td.name {
-            color: var(--vscode-terminal-ansiBlue);
-            font-weight: 600;
-        }
-        td.size {
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }
-        td.date {
-            color: var(--vscode-descriptionForeground);
-            font-variant-numeric: tabular-nums;
-            text-align: right;
-        }
-        .empty {
-            padding: 40px;
-            text-align: center;
-            color: var(--vscode-descriptionForeground);
-            font-style: italic;
-        }
-    </style>
+    <link href="${cssUri}" rel="stylesheet">
 </head>
 <body>
     <div class="header">
