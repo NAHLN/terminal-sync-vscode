@@ -71,7 +71,6 @@ export function getHtmlForTable(
         if (options.longFormat) {
             return `
                 <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
-                    ${showIcon ? `<td class="icon">${icon}</td>` : ''}
                     <td class="mode">${file.mode}</td>
                     <td class="size">${formatSize(file.size, options.humanReadable)}</td>
                     <td class="date">${formatDate(file.mtime)}</td>
@@ -103,7 +102,6 @@ export function getHtmlForTable(
     <table>
         <thead>
             <tr>
-                ${options.longFormat || options.classify ? '<th class="icon"></th>' : ''}
                 ${options.longFormat ? '<th class="mode">Mode</td>' : ''}
                 ${options.longFormat ? '<th class="size">Size</th>' : ''}
                 ${options.longFormat ? '<th class="date">Modified</th>' : ''}
