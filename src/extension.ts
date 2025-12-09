@@ -18,6 +18,7 @@ import {
 } from "./commandParser";
 
 import * as webviewTemplates from "./webviewTemplates";
+import * as UserGroup from "./userGroupResolver";
 
 let lsOptions: LsOptions = {
     showHidden: false,
@@ -61,6 +62,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     outputChannel = vscode.window.createOutputChannel('Terminal File Sync');
     
+    // build the User/Group number => name lookup for `ls`
+    UserGroup.initUserGroupMaps();
+
     // Create status bar item to show current directory
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     statusBarItem.command = 'terminal-file-explorer.revealCurrentDirectory';

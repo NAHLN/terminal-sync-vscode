@@ -1,6 +1,7 @@
 // fileData.ts
 import * as fs from "fs";
 import * as path from "path";
+import * as UserGroup from "./userGroupResolver";
 
 export interface FileTypeFlags {
     isRegularFile: boolean; 
@@ -35,6 +36,10 @@ export interface FileData extends FileTypeFlags {
   accessDateString: string;
   modifiedDateString: string;
   changedDateString: string; // metadata, such as permissions
+
+  // file owner and group provided by userGroupResolver
+  owner:string;
+  group:string;
 
   // optional: ls classification symbols like "/", "@", "*"
   classify?: string;
@@ -90,6 +95,9 @@ export function buildFileDataSync(dir: string, filename: string): FileData {
     accessDateString: formatDate(stats.atime),
     modifiedDateString: formatDate(stats.mtime),
     changedDateString: formatDate(stats.ctime),
+
+    owner: UserGroup.resolveUser(stats.uid),
+    group: UserGroup.resolveGroup(stats.gid),
 
     classify: undefined
   };

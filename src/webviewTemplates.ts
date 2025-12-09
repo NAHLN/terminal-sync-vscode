@@ -72,6 +72,8 @@ export function getHtmlForTable(
             return `
                 <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
                     <td class="mode" title="${escapeHtml(getModeTooltip(file))}">${file.mode}</td>
+                    <td class="owner">${file.owner}</td>
+                    <td class="group">${file.group}</td>
                     <td class="size">${formatSize(file.size, options.humanReadable)}</td>
                     <td class="date">${formatDate(file.mtime)}</td>
                     <td class="name">${displayName}</td>                    
@@ -103,6 +105,8 @@ export function getHtmlForTable(
         <thead>
             <tr>
                 ${options.longFormat ? '<th class="mode">Mode</td>' : ''}
+                ${options.longFormat ? '<th class="owner">Owner</th>' : ''}
+                ${options.longFormat ? '<th class="group">Group</th>' : ''}
                 ${options.longFormat ? '<th class="size">Size</th>' : ''}
                 ${options.longFormat ? '<th class="date">Modified</th>' : ''}
                 <th class="name">Name</th>                

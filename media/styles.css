@@ -118,6 +118,19 @@ td.date {
     font-variant-numeric: tabular-nums;
     text-align: right;
 }
+
+th.owner, td.owner {
+    width: 100px;
+    max-width: 140px;
+    white-space: nowrap;
+}
+
+th.group, td.group {
+    width: 100px;
+    max-width: 140px;
+    white-space: nowrap;
+}
+
 .empty {
     padding: 40px;
     text-align: center;
