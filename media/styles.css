@@ -44,7 +44,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
 }
 th {
     position: sticky;
@@ -58,6 +58,27 @@ th {
     text-transform: uppercase;
     color: var(--vscode-descriptionForeground);
 }
+
+th.mode, td.mode {
+    width: 90px;
+    max-width: 90px;
+}
+
+th.size, td.size {
+    width: 80px;
+    max-width: 80px;
+}
+
+th.date, td.date {
+    width: 120px;
+    max-width: 120px;
+}
+
+th.name, td.name {
+    width: auto;
+    white-space: nowrap;
+}
+
 th.icon { width: 30px; }
 th.name { width: auto; }
 th.size { width: 80px; }
@@ -86,7 +107,6 @@ td.name {
     font-weight: 500;
 }
 tr.directory td.name {
-    color: var(--vscode-terminal-ansiBlue);
     font-weight: 600;
 }
 td.size {
