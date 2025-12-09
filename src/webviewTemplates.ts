@@ -71,7 +71,7 @@ export function getHtmlForTable(
         if (options.longFormat) {
             return `
                 <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
-                    <td class="mode">${file.mode}</td>
+                    <td class="mode" title="${escapeHtml(getModeTooltip(file))}">${file.mode}</td>
                     <td class="size">${formatSize(file.size, options.humanReadable)}</td>
                     <td class="date">${formatDate(file.mtime)}</td>
                     <td class="name">${displayName}</td>                    
@@ -160,3 +160,47 @@ export function formatDate(date: Date): string {
         return `${month} ${day}  ${year}`;
     }
 };
+
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/\n/g, "&#10;");
+}
+
+function getModeTooltip(file: FileSystem.FileData): string {
+    const mode = file.mode; // like "-rwxr-xr--"
+
+    const typeChar = mode[0];
+    const user = mode.slice(1, 4);
+    const group = mode.slice(4, 7);
+    const other = mode.slice(7, 10);
+
+    const typeMap: Record<string, string> = {
+        '-': 'Regular file',
+        'd': 'Directory',
+        'l': 'Symbolic link',
+        'c': 'Character device',
+        'b': 'Block device',
+        's': 'Socket',
+        'p': 'FIFO (named pipe)',
+    };
+
+    function decodePerms(perm: string): string {
+        return [
+            perm[0] === 'r' ? 'Read' : '',
+            perm[1] === 'w' ? 'Write' : '',
+            perm[2] === 'x' ? 'Execute' : ''
+        ].filter(Boolean).join(',');
+    }
+
+    return [
+        `${file.name} (${mode})`,
+        `Type: ${typeMap[typeChar] ?? 'Unknown'} (${typeChar})`,
+        `User: ${decodePerms(user)} (${user})`,
+        `Group: ${decodePerms(group)} (${group})`,
+        `Other: ${decodePerms(other)} (${other})`,
+    ].join('\n');
+}
