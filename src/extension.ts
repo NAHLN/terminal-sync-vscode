@@ -20,6 +20,9 @@ import {
 import * as webviewTemplates from "./webviewTemplates";
 import * as UserGroup from "./userGroupResolver";
 
+import { GIT_COMMIT, BUILD_TIME } from "./versionInfo";
+
+
 let lsOptions: LsOptions = {
     showHidden: false,
     longFormat: false,
@@ -71,6 +74,10 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem.text = '$(folder) ~';
     statusBarItem.tooltip = 'Current working directory (click to reveal)';
     statusBarItem.show();
+    const versionItem = vscode.window.createStatusBarItem();
+    versionItem.text = `Extension hash: ${GIT_COMMIT}`;
+    versionItem.show();
+
     
     // Create the remote file explorer tree view
     remoteExplorer = new RemoteFileExplorer(outputChannel);
