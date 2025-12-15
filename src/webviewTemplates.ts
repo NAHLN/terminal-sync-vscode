@@ -2,10 +2,11 @@
 //   Use this module to organize all html-generating functions.
 //   See matching private method names (with _ added in front) in
 //   class LsTableViewProvider (extension.ts)
+import { matchesGlob } from "./globTool";
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as LsParser from "./commandParser";
 import * as FileSystem from "./fileData";
-import * as path from 'path';
 
 export function getInitialHtml(cssUri: vscode.Uri): string {
     return `<!DOCTYPE html>
@@ -66,11 +67,19 @@ export function getHtmlForTable(
         const fullPath = path.join(directory, file.name);
         const displayName = file.name + getClassifyIndicator(file);
         const showIcon = options.longFormat || options.classify;
+
+
+        const activeGlob = "*.json";   
+        const isMatch = matchesGlob(file.name, activeGlob);
+        const rowClass = [
+            file.isDirectory ? "directory" : "file",
+            isMatch ? "glob-match" : "glob-nomatch"
+        ].join(" ");
         
         // Conditionally include size and date columns only with -l flag
         if (options.longFormat) {
             return `
-                <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                <tr class="${rowClass}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
                     <td class="mode" title="${escapeHtml(getModeTooltip(file))}">${file.mode}</td>
                     <td class="owner">${file.owner}</td>
                     <td class="group">${file.group}</td>
@@ -81,7 +90,7 @@ export function getHtmlForTable(
             `;
         } else {
             return `
-                <tr class="${className}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                <tr class="${rowClass}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
                     ${showIcon ? `<td class="icon">${icon}</td>` : ''}
                     <td class="name">${displayName}</td>
                 </tr>

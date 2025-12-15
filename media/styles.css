@@ -137,3 +137,11 @@ th.group, td.group {
     color: var(--vscode-descriptionForeground);
     font-style: italic;
 }
+
+tr.glob-nomatch {
+    opacity: 0.35;
+}
+
+tr.glob-match {
+    background-color: var(--vscode-editor-findMatchBackground);
+}

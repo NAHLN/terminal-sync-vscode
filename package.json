@@ -12,7 +12,7 @@
     "url": "https://github.com/NAHLN/terminal-sync-vscode.git"
   },
   "bugs": {
-    "url": "https://github.com/NAHLN/terminal-sync-vscode/issues" 
+    "url": "https://github.com/NAHLN/terminal-sync-vscode/issues"
   },
   "homepage": "https://github.com/NAHLN/terminal-sync-vscode#readme",
   "keywords": [
@@ -109,6 +109,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "minimatch": "^10.1.1",
     "ssh2-sftp-client": "^10.0.3"
   }
 }
