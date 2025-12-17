@@ -6,8 +6,8 @@ import { minimatch } from "minimatch";
  */
 export function matchesGlob(filename: string, pattern: string): boolean 
 {
-    if (!pattern || pattern.trim() === "") {
-        return true; // empty pattern = match all
+    if (pattern.length == 0) {
+        return false; // empty pattern = match all
     }
 
     return minimatch(filename, pattern, {

@@ -3,11 +3,11 @@
 // Version: 1.1.0
 // Main extension file for Terminal-Synced File Browser
 // Enhanced to show files only after 'ls' command with GNU ls option support
-
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { FileData, buildFileDataSync, classifyFile } from "./fileData";
+import { matchesGlob } from "./globTool";
 import {
     isPwdCommand,
     isCdCommand,
@@ -58,7 +58,8 @@ let lsTableViewProvider: LsTableViewProvider;
 let currentWorkingDirectory: string = '';
 let statusBarItem: vscode.StatusBarItem;
 let shouldShowFiles: boolean = false;  // Only show files after ls command
-
+let activeGlob: string = "";
+let lastRenderedFiles: FileData[] = [];
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Terminal-Synced File Browser activated');
@@ -75,6 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
     statusBarItem.tooltip = 'Current working directory (click to reveal)';
     statusBarItem.show();
     const versionItem = vscode.window.createStatusBarItem();
+    context.subscriptions.push(versionItem);
     versionItem.text = `Extension hash: ${GIT_COMMIT}`;
     versionItem.show();
 
@@ -124,6 +126,8 @@ export function activate(context: vscode.ExtensionContext) {
                         
                         // Clear the webview table
                         if (lsTableViewProvider) {
+                            activeGlob = "";
+                            lastRenderedFiles = [];
                             lsTableViewProvider.clearTable(targetDir);
                         }
                         
@@ -556,10 +560,7 @@ class RemoteFileItem extends vscode.TreeItem {
     }
 
     private formatSize(bytes: number): string {
-        if (bytes < 1024) return `${bytes}B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}K`;
-        if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}M`;
-        return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)}G`;
+        return webviewTemplates.formatSize(bytes);
     }
 
     private padRight(str: string, width: number): string {
@@ -660,7 +661,8 @@ async function updateLsTableView() {
         }
 
         // Update the webview
-        lsTableViewProvider.updateTable(currentWorkingDirectory, fileData, lsOptions);
+        lastRenderedFiles = fileData;
+        lsTableViewProvider.updateTable(currentWorkingDirectory, fileData, lsOptions, activeGlob);
     } catch (err) {
         outputChannel.appendLine(`Error updating table view: ${err}`);
     }
@@ -670,14 +672,15 @@ async function updateLsTableView() {
 class LsTableViewProvider implements vscode.WebviewViewProvider {
     private _view?: vscode.WebviewView;
     private _cssUri?: vscode.Uri;
+    private _jsUri?: vscode.Uri;
 
     constructor(private readonly _extensionUri: vscode.Uri) {}
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
         context: vscode.WebviewViewResolveContext,
-        _token: vscode.CancellationToken
-    ) {
+        _token: vscode.CancellationToken)
+    {
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -690,12 +693,47 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
         this._cssUri = webviewView.webview.asWebviewUri(
             vscode.Uri.joinPath(this._extensionUri, "media", "styles.css")
         );
+        this._jsUri = webviewView.webview.asWebviewUri(
+            vscode.Uri.joinPath(this._extensionUri, "media", "webview.js")
+        );
 
         webviewView.webview.html = this._getInitialHtml();
 
+        const sendGlobUpdate = () => {
+            if (!this._view) return;
+            this._view.webview.postMessage({
+                command: "applyGlob",
+                pattern: activeGlob
+            });
+        };
         // Handle messages from webview
         webviewView.webview.onDidReceiveMessage(async (message) => {
-            switch (message.command) {
+            switch (message.command) 
+            {
+                case "globApply": {
+                    activeGlob = message.pattern ?? "";
+
+                    const matched = new Set(
+                        lastRenderedFiles
+                            .filter(f => matchesGlob(f.name, activeGlob))
+                            .map(f => f.name)
+                    );
+
+                    this._view?.webview.postMessage({
+                        command: "applyGlob",
+                        matches: Array.from(matched)
+                    });
+                    break;
+                }
+                case "globClear": {
+                    activeGlob = "";
+
+                    this._view?.webview.postMessage({
+                        command: "applyGlob",
+                        matches: []
+                    });
+                    break;
+                }
                 case 'changeDirectory':
                     const terminal = vscode.window.activeTerminal || vscode.window.createTerminal();
                     terminal.show();
@@ -709,9 +747,9 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
         });
     }
 
-    public updateTable(directory: string, files: FileData[], options: LsOptions) {
+    public updateTable(directory: string, files: FileData[], options: LsOptions, activeGlob:string) {
         if (this._view) {
-            this._view.webview.html = this._getHtmlForTable(directory, files, options);
+            this._view.webview.html = this._getHtmlForTable(directory, files, options, activeGlob);
         }
     }
 
@@ -724,13 +762,13 @@ class LsTableViewProvider implements vscode.WebviewViewProvider {
     // see webviewTemplates.ts to view the 
     // table's HTML
     private _getInitialHtml(): string {
-        return webviewTemplates.getInitialHtml(this._cssUri!);
+        return webviewTemplates.getInitialHtml(this._cssUri!, this._jsUri!);
     }
     private _getWaitingHtml(directory: string): string {
-        return webviewTemplates.getWaitingHtml(directory, this._cssUri!);
+        return webviewTemplates.getWaitingHtml(directory, this._cssUri!, this._jsUri!);
     }
-    private _getHtmlForTable(directory: string, files: FileData[], options: LsOptions): string { 
-        return webviewTemplates.getHtmlForTable(directory, files, options, this._cssUri!);
+    private _getHtmlForTable(directory: string, files: FileData[], options: LsOptions,activeGlob:string): string { 
+        return webviewTemplates.getHtmlForTable(directory, files, options, this._cssUri!, this._jsUri!, activeGlob);
     }
 
 }

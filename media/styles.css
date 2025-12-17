@@ -41,6 +41,34 @@ body {
     color: var(--vscode-terminal-ansiGreen);
     font-size: 12px;
 }
+
+.glob-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+}
+
+.glob-tool input {
+  flex: 1;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 2px 6px;
+}
+
+.glob-tool button {
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.glob-tool button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -144,4 +172,37 @@ tr.glob-nomatch {
 
 tr.glob-match {
     background-color: var(--vscode-editor-findMatchBackground);
+}
+
+.find-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editor-background);
+}
+
+.find-bar.hidden {
+  display: none;
+}
+
+.find-label {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+
+.find-bar input {
+  flex: 1;
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  padding: 3px 6px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.find-bar .hint {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
 }

@@ -1,55 +1,39 @@
 // webviewTemplates.ts -
-//   Use this module to organize all html-generating functions.
+//   Use this module to organize all HTML-generating functions.
 //   See matching private method names (with _ added in front) in
 //   class LsTableViewProvider (extension.ts)
-import { matchesGlob } from "./globTool";
+
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as LsParser from "./commandParser";
 import * as FileSystem from "./fileData";
 
-export function getInitialHtml(cssUri: vscode.Uri): string {
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LS Table</title>
-<link href="${cssUri}" rel="stylesheet">
-</head>
-<body>
-<div class="waiting">
+export function getInitialHtml(cssUri: vscode.Uri, webviewJsUri: vscode.Uri): string 
+{
+    return HTMLPage(cssUri, webviewJsUri, `
+    <div class="waiting">
     <p>Run <code>ls</code> in the terminal to view directory contents</p>
-</div>
-</body>
-</html>`;
+    </div>`);
 }
 
-export function getWaitingHtml(directory: string, cssUri: vscode.Uri): string {
-        return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LS Table</title>
-    <link href="${cssUri}" rel="stylesheet">
-</head>
-<body>
-    <div class="header">
+export function getWaitingHtml(directory: string, cssUri: vscode.Uri, webviewJsUri: vscode.Uri): string 
+{
+    return HTMLPage(cssUri, webviewJsUri,
+    `<div class="header">
         <span class="directory-path">📂 ${directory}</span>
     </div>
     <div class="waiting">
         <p>Run <code>ls</code> to view directory contents</p>
-    </div>
-</body>
-</html>`;
+    </div>`);
 }
 
 export function getHtmlForTable(
     directory: string, 
     files: FileSystem.FileData[], 
     options: LsParser.LsOptions,
-    cssUri: vscode.Uri
+    cssUri: vscode.Uri,
+    webviewJsUri: vscode.Uri,
+    activeGlob: string = ""
 ): string {
 
 
@@ -69,17 +53,17 @@ export function getHtmlForTable(
         const showIcon = options.longFormat || options.classify;
 
 
-        const activeGlob = "*.json";   
-        const isMatch = matchesGlob(file.name, activeGlob);
+        
+        //const isMatch = matchesGlob(file.name, activeGlob);
         const rowClass = [
             file.isDirectory ? "directory" : "file",
-            isMatch ? "glob-match" : "glob-nomatch"
+            "primary"
         ].join(" ");
         
         // Conditionally include size and date columns only with -l flag
         if (options.longFormat) {
             return `
-                <tr class="${rowClass}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                <tr data-filename="${file.name}" class="${rowClass}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
                     <td class="mode" title="${escapeHtml(getModeTooltip(file))}">${file.mode}</td>
                     <td class="owner">${file.owner}</td>
                     <td class="group">${file.group}</td>
@@ -90,7 +74,7 @@ export function getHtmlForTable(
             `;
         } else {
             return `
-                <tr class="${rowClass}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
+                <tr data-filename="${file.name}" class="${rowClass}" onclick="handleClick('${action}', '${fullPath.replace(/'/g, "\\'")}')">
                     ${showIcon ? `<td class="icon">${icon}</td>` : ''}
                     <td class="name">${displayName}</td>
                 </tr>
@@ -98,18 +82,22 @@ export function getHtmlForTable(
         }
     }).join('');
 
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LS Table</title>
-    <link href="${cssUri}" rel="stylesheet">
-</head>
-<body>
-    <div class="header">
+    return HTMLPage(cssUri,webviewJsUri,
+    `<div class="header">
         <span class="directory-path">📂 ${directory}</span>
     </div>
+    <div id="findBar" class="find-bar">
+        <span class="find-label">Find (glob)</span>
+        <input
+            id="globInput"
+            type="text"
+            placeholder="*.ts  data_??.fq"
+            spellcheck="false"
+        />
+        <button id="globApply" title="Apply glob">✓</button>
+        <button id="globClear" title="Clear glob">✕</button>
+    </div>
+
     <table>
         <thead>
             <tr>
@@ -124,22 +112,27 @@ export function getHtmlForTable(
         <tbody>
             ${tableRows || `<tr><td colspan="${(options.longFormat || options.classify ? 1 : 0) + 1 + (options.longFormat ? 2 : 0)}" class="empty">No files to display</td></tr>`}
         </tbody>
-    </table>
-    <script>
-        const vscode = acquireVsCodeApi();
-        
-        function handleClick(action, path) {
-            vscode.postMessage({
-                command: action,
-                path: path
-            });
-        }
-    </script>
-</body>
-</html>`;
+    </table>`);
 }
 
-
+export function HTMLPage(cssUri: vscode.Uri, webviewJsUri: vscode.Uri, innerHTML:string):string 
+// use this function to wrap page content when generating an entire HTML page
+{
+    return `<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LS Table</title>
+        <link href="${cssUri}" rel="stylesheet">
+        <script src="${webviewJsUri}"></script>
+    </head>
+    <body>
+    ${innerHTML}
+    </body>
+    </html>
+    `;
+}
 /*
 * Common formatting functions that replicate output by "GNU ls"
 */
