@@ -24,3 +24,7 @@ npm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# local development files
+ai-prompt-tools/
+.trash/
