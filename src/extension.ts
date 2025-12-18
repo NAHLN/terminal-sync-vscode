@@ -62,9 +62,10 @@ let activeGlob: string = "";
 let lastRenderedFiles: FileData[] = [];
 
 export function activate(context: vscode.ExtensionContext) {
+    outputChannel = vscode.window.createOutputChannel('Terminal File Sync');
+    outputChannel.appendLine("TFE: activate() reached");
     console.log('Terminal-Synced File Browser activated');
 
-    outputChannel = vscode.window.createOutputChannel('Terminal File Sync');
     
     // build the User/Group number => name lookup for `ls`
     UserGroup.initUserGroupMaps();
@@ -221,7 +222,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Show helpful message
-    outputChannel.appendLine('Terminal File Sync activated');
+    outputChannel.appendLine('Hey: Terminal File Sync activated');
     outputChannel.appendLine('Use cd to navigate, then ls to view files');
     outputChannel.show();
 }
