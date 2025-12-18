@@ -1,11 +1,9 @@
 {
-  "_comment_artifact": "terminal-sync-package",
-  "_comment_version": "1.1.0",
-  "name": "terminal-file-explorer",
-  "displayName": "Terminal Directory Navigator",
-  "description": "File browser that syncs with terminal cd commands and displays ls output in a table view",
-  "version": "1.1.0",
-  "publisher": "your-publisher-name",
+  "name": "terminal-tools-sync",
+  "displayName": "Terminal Workspace Tools",
+  "description": "Visual workspace tools that sync terminal navigation and provide guided entry points into shell-based workflows",
+  "version": "0.1.0",
+  "publisher": "CSU-Mayolab",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,7 +19,9 @@
     "ls",
     "directory",
     "navigation",
-    "codespaces"
+    "codespaces",
+    "hpc",
+    "remote"
   ],
   "engines": {
     "vscode": "^1.80.0"
@@ -38,7 +38,7 @@
       "activitybar": [
         {
           "id": "terminalFileExplorerView",
-          "title": "Terminal File Explorer",
+          "title": "Terminal Workspace",
           "icon": "$(terminal)"
         }
       ]
@@ -109,7 +109,6 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "minimatch": "^10.1.1",
-    "ssh2-sftp-client": "^10.0.3"
+    "minimatch": "^10.1.1"
   }
 }
