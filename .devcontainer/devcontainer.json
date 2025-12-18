@@ -13,7 +13,6 @@
       }
     }
   },
-  "onCreateCommand": "bash .devcontainer/install-contents.sh",
   "postCreateCommand": "npm install && npm run compile",
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
   
