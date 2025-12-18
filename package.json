@@ -93,7 +93,7 @@
     }
   },
   "scripts": {
-    "precompile": "node build/generateVersionInfo.js",
+    "precompile": "node scripts/generateVersionInfo.js",
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
