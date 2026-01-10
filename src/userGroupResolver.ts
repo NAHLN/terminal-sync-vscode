@@ -1,4 +1,6 @@
+import { execSync } from "child_process";
 import * as fs from "fs";
+import { getEnvironmentData } from "worker_threads";
 
 const uidNameMap = new Map<number, string>();
 const gidNameMap = new Map<number, string>();
@@ -31,9 +33,36 @@ export function initUserGroupMaps() {
 }
 
 export function resolveUser(uid: number): string {
-    return uidNameMap.get(uid) ?? uid.toString();
+    return uidNameMap.get(uid) ?? getent(uid, false);
 }
 
 export function resolveGroup(gid: number): string {
-    return gidNameMap.get(gid) ?? gid.toString();
+    return gidNameMap.get(gid) ?? getent(gid, true);
+}
+
+function getent(id: number, isGroup: boolean): string {
+    const command = isGroup ? `getent group ${id}` : `getent passwd ${id}`;
+    const map = isGroup ? gidNameMap : uidNameMap;
+
+    try {
+        const output = execSync(command, { 
+            encoding: "utf8", 
+            timeout: 1000,
+            stdio: ['pipe', 'pipe', 'ignore'] // Suppress stderr
+        }).trim();
+        
+        const parts = output.split(":");
+        if (parts.length > 0 && parts[0]) {
+            const name = parts[0];
+            map.set(id, name);  // Update the appropriate map
+            return name;
+        }
+    } catch (err) {
+        // getent failed - fall through to numeric
+    }
+
+    // Cache the numeric fallback so we don't keep trying
+    const fallback = id.toString();
+    map.set(id, fallback);
+    return fallback;
 }
